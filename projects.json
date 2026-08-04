@@ -1,0 +1,555 @@
+{
+  "projectMetadata": {
+    "name": "Habit Tracker PWA",
+    "description": "Progressive Web App para rastrear hábitos diarios con sincronización en tiempo real",
+    "version": "1.0.0",
+    "author": "Ricardo",
+    "type": "next-pwa",
+    "createdAt": "2026-08-04",
+    "language": "TypeScript",
+    "timezone": "America/Mexico_City"
+  },
+
+  "claudeCodeSetup": {
+    "critical": "LEER PRIMERO - Setup de Claude Code",
+    "caveman-mode-plugin": {
+      "title": "Instalar Caveman Mode Plugin ANTES de ejecutar agentes",
+      "commands": [
+        "claude plugin marketplace add juliusbrussee/caveman",
+        "claude plugin install caveman@caveman --scope project"
+      ],
+      "why": "Reduce token waste 40-50%, elimina filler text y recaps verbosos",
+      "timeout": "~30 segundos",
+      "verification": "Verás que Claude Code responde de forma concisa, sin explicaciones largas"
+    },
+    "working-directory": {
+      "step": "cd path/to/habits-tracker",
+      "importance": "Crítico para que agentes tengan contexto correcto"
+    }
+  },
+
+  "codeStyle": {
+    "philosophy": "Caveman Coding - Minimalista, directo, auto-documentado",
+    "comments": {
+      "rule": "❌ CERO COMENTARIOS EN EL CÓDIGO",
+      "why": "El código debe ser auto-explicativo. Nombres claros reemplazan comentarios.",
+      "exceptions": "Ninguna"
+    },
+    "naming": {
+      "variables": "camelCase, máximo 3 palabras, descriptivo",
+      "functions": "camelCase, verbo + sustantivo, describe la acción",
+      "constants": "UPPER_SNAKE_CASE",
+      "components": "PascalCase",
+      "avoid": ["Una letra (a, b, x)", "Abreviaturas (cnt, arr, tmp)", "Genéricos (data, value, result)"]
+    },
+    "functions": {
+      "maxLines": 20,
+      "rule": "Si > 20 líneas, divide en sub-funciones",
+      "structure": "Una responsabilidad, tipos explícitos"
+    },
+    "files": {
+      "maxLines": 300,
+      "rule": "Si > 300 líneas, divide en subfolder o archivo separado"
+    },
+    "geometry": {
+      "borderRadius": "CERO en todo. rounded-none explícito siempre.",
+      "principle": "Bordes cuadrados son identidad de diseño. Imposibilitar accidentalmente redondos.",
+      "applies-to": ["buttons", "cards", "inputs", "selects", "modals", "chips", "badges", "toggles", "dropdowns"]
+    },
+    "motion": {
+      "rule": "CERO animaciones. State changes instantáneos.",
+      "forbidden": ["transition-*", "animate-*", "keyframes", "spinners", "skeleton shimmer"],
+      "only-exception": "Toast feedback pattern (600-900ms, auto-dismiss)"
+    }
+  },
+
+  "agentInstructions": {
+    "forAllAgents": {
+      "prerequisite": "Caveman Mode plugin debe estar instalado",
+      "rule1": "❌ CERO COMENTARIOS EN CÓDIGO",
+      "rule2": "✅ Caveman coding (auto-documentado)",
+      "rule3": "✅ Nombres descriptivos, específicos",
+      "rule4": "✅ TypeScript STRICT MODE",
+      "rule5": "✅ Funciones < 20 líneas",
+      "rule6": "✅ Respuestas directas, sin explicaciones largas",
+      "readFirst": [
+        "project.json (este archivo)",
+        ".claude-spec/ files relevantes"
+      ]
+    },
+    "backend": {
+      "name": "Agent Backend",
+      "responsibility": "Database, API routes, tipos TypeScript, lógica de Supabase",
+      "executionOrder": [
+        "1. Crear tabla user_settings en Supabase (SQL)",
+        "2. Verificar/actualizar tabla activities (agregar title si no existe)",
+        "3. Crear/actualizar RLS policies para todas las tablas",
+        "4. Crear/actualizar triggers para updated_at",
+        "5. Generar lib/types.ts completo",
+        "6. Crear lib/supabase.ts",
+        "7. Crear lib/db-queries.ts",
+        "8. Crear app/api/settings/language/route.ts",
+        "9. Crear app/api/activities/route.ts",
+        "10. Crear app/api/activities/[id]/route.ts",
+        "11. Crear app/api/categories/route.ts",
+        "12. Crear app/api/categories/[id]/route.ts",
+        "13. Crear app/api/tags/route.ts",
+        "14. Crear app/api/tags/[id]/route.ts",
+        "15. Crear app/api/reports/filter/route.ts"
+      ],
+      "criticalValidations": [
+        "title: VARCHAR(255) NOT NULL",
+        "rating: INT CHECK (0-5)",
+        "start_time < end_time siempre",
+        "user_id en todas las operaciones (seguridad)",
+        "Máximo 7 categorías por usuario (4 default + 3 custom)"
+      ],
+      "specs": [
+        ".claude-spec/DATABASE_SCHEMA.md",
+        ".claude-spec/API_ENDPOINTS.md"
+      ]
+    },
+    "frontend": {
+      "name": "Agent Frontend",
+      "responsibility": "Componentes React, páginas, UI logic, integraciones con APIs",
+      "executionOrder": [
+        "1. lib/i18n/LanguageContext.tsx",
+        "2. lib/translations/ (en.json, es.json, categoryNames.ts)",
+        "3. lib/locale-utils.ts",
+        "4. Actualizar app/layout.tsx (LanguageProvider)",
+        "5. components/LanguageToggle.tsx",
+        "6. components/LocalizedDate.tsx",
+        "7. lib/store.ts (Zustand)",
+        "8. components/Toast.tsx + ToastProvider",
+        "9. components/RatingStars.tsx",
+        "10. components/ActivityCard.tsx",
+        "11. components/ActivityForm.tsx (incluir title)",
+        "12. components/CategorySelector.tsx",
+        "13. components/TagSelector.tsx",
+        "14. app/page.tsx (Dashboard)",
+        "15. app/activities/add/page.tsx",
+        "16. app/activities/[id]/edit/page.tsx",
+        "17. app/reports/page.tsx",
+        "18. app/categories/page.tsx",
+        "19. app/settings/page.tsx",
+        "20. app/auth/login/page.tsx",
+        "21. app/auth/signup/page.tsx",
+        "22. Integrar dark mode (next-themes)"
+      ],
+      "criticalValidations": [
+        "Title input: required, 1-255 chars",
+        "rounded-none explícito en TODO",
+        "Sin animaciones excepto toast",
+        "Responsive: 390px mobile, desktop adaptado",
+        "Multiidioma: UI traduce, user data NO"
+      ],
+      "specs": [
+        ".claude-spec/COMPONENT_SPEC.md",
+        ".claude-spec/DESIGN_SYSTEM.md",
+        ".claude-spec/MULTILANGUAGE.md"
+      ]
+    }
+  },
+
+  "database": {
+    "provider": "Supabase",
+    "region": "Cercano a ubicación del usuario",
+    "tables": {
+      "categories": {
+        "purpose": "Categorías de hábitos",
+        "fields": [
+          "id (UUID, PK)",
+          "user_id (FK → auth.users)",
+          "name (VARCHAR 100)",
+          "color (VARCHAR 7, hex)",
+          "icon (VARCHAR 50)",
+          "is_default (BOOLEAN)",
+          "created_at (TIMESTAMP)",
+          "updated_at (TIMESTAMP)"
+        ],
+        "defaultCategories": [
+          { "key": "study", "name": "Study", "color": "#2563eb", "icon": "📚" },
+          { "key": "exercise", "name": "Exercise", "color": "#16a34a", "icon": "💪" },
+          { "key": "personals", "name": "Personal Improvement", "color": "#ea580c", "icon": "🌱" },
+          { "key": "spaces", "name": "Spaces", "color": "#7c3aed", "icon": "🏠" }
+        ],
+        "constraint": "UNIQUE(user_id, name)"
+      },
+      "tags": {
+        "purpose": "Etiquetas asociadas a categorías (1:N)",
+        "fields": [
+          "id (UUID, PK)",
+          "user_id (FK → auth.users)",
+          "category_id (FK → categories)",
+          "name (VARCHAR 50)",
+          "color (VARCHAR 7, hex)",
+          "created_at (TIMESTAMP)",
+          "updated_at (TIMESTAMP)"
+        ],
+        "constraint": "UNIQUE(user_id, category_id, name)"
+      },
+      "activities": {
+        "purpose": "Registro diario de actividades con título, tiempo y rating",
+        "fields": [
+          "id (UUID, PK)",
+          "user_id (FK → auth.users)",
+          "category_id (FK → categories)",
+          "tag_id (FK → tags, nullable)",
+          "title (VARCHAR 255, NOT NULL)",
+          "start_time (TIMESTAMP)",
+          "end_time (TIMESTAMP)",
+          "duration_minutes (INT, GENERATED)",
+          "rating (INT, 0-5, default 0)",
+          "notes (TEXT)",
+          "activity_date (DATE)",
+          "created_at (TIMESTAMP)",
+          "updated_at (TIMESTAMP)"
+        ],
+        "constraints": [
+          "end_time > start_time",
+          "rating >= 0 AND rating <= 5"
+        ]
+      },
+      "user_settings": {
+        "purpose": "Preferencias de usuario",
+        "fields": [
+          "id (UUID, PK)",
+          "user_id (UUID, UNIQUE, FK → auth.users)",
+          "language (VARCHAR 5, 'en' | 'es', default 'en')",
+          "theme (VARCHAR 10, 'light' | 'dark' | 'system', default 'system')",
+          "created_at (TIMESTAMP)",
+          "updated_at (TIMESTAMP)"
+        ]
+      }
+    },
+    "security": {
+      "authentication": "Supabase Auth (email + password)",
+      "authorization": "Row Level Security (RLS)",
+      "policy": "Users can only access their own data"
+    },
+    "indexes": [
+      "idx_activities_user_date ON activities(user_id, activity_date DESC)",
+      "idx_activities_category ON activities(category_id)",
+      "idx_activities_rating ON activities(user_id, rating)",
+      "idx_activities_title ON activities(user_id, title)",
+      "idx_tags_category ON tags(category_id)",
+      "idx_categories_user ON categories(user_id)",
+      "idx_user_settings_user_id ON user_settings(user_id)"
+    ]
+  },
+
+  "multiLanguage": {
+    "supported": ["en", "es"],
+    "default": "en",
+    "detection": "Browser locale (navigator.language) + manual toggle",
+    "storage": "user_settings.language (Supabase)",
+    "architecture": {
+      "database": "Always English (keys/names DEFAULT)",
+      "frontend": "Traduce UI según settings.language",
+      "userCreatedData": "Se guarda en idioma que user escriba, NO se traduce",
+      "reportes": "UI traducida, datos como en DB"
+    },
+    "changeLanguage": "Settings → reload página",
+    "specs": ".claude-spec/MULTILANGUAGE.md"
+  },
+
+  "ui": {
+    "framework": "Next.js 15 + React 19",
+    "styling": "Tailwind CSS v3",
+    "darkMode": {
+      "enabled": true,
+      "library": "next-themes",
+      "default": "system"
+    },
+    "designPrinciples": [
+      "Minimalista (sin gradientes, sin drop shadows)",
+      "Sin fricción (máximo 2-3 clics por acción)",
+      "Colores vibrantes y contrastantes",
+      "Bordes cuadrados (identidad de diseño)",
+      "Cero animaciones (excepto toast)",
+      "Tipografía limitada (2-3 pesos)"
+    ]
+  },
+
+  "colors": {
+    "description": "Paleta vibrante, contrastante, sin gradientes",
+    "categories": {
+      "study": {
+        "light": "#2563eb",
+        "dark": "#3b82f6",
+        "contrast": "#1e3a8a"
+      },
+      "exercise": {
+        "light": "#16a34a",
+        "dark": "#22c55e",
+        "contrast": "#166534"
+      },
+      "personals": {
+        "light": "#ea580c",
+        "dark": "#f97316",
+        "contrast": "#92400e"
+      },
+      "spaces": {
+        "light": "#7c3aed",
+        "dark": "#a78bfa",
+        "contrast": "#581c87"
+      }
+    },
+    "semantic": {
+      "success": { "light": "#059669", "dark": "#10b981" },
+      "error": { "light": "#dc2626", "dark": "#ef4444" },
+      "warning": { "light": "#d97706", "dark": "#f59e0b" },
+      "info": { "light": "#0891b2", "dark": "#06b6d4" }
+    },
+    "rating": "#f59e0b",
+    "lightMode": {
+      "background": { "primary": "#ffffff", "secondary": "#f9fafb", "tertiary": "#f3f4f6" },
+      "text": { "primary": "#111827", "secondary": "#374151", "tertiary": "#6b7280" },
+      "border": { "light": "#e5e7eb", "medium": "#d1d5db", "strong": "#9ca3af" }
+    },
+    "darkMode": {
+      "background": { "primary": "#0f172a", "secondary": "#1e293b", "tertiary": "#334155" },
+      "text": { "primary": "#f1f5f9", "secondary": "#cbd5e1", "tertiary": "#94a3b8" },
+      "border": { "light": "#334155", "medium": "#475569", "strong": "#64748b" }
+    }
+  },
+
+  "api": {
+    "baseUrl": "/api",
+    "endpoints": {
+      "auth": {
+        "signup": "POST /api/auth/signup",
+        "login": "POST /api/auth/login",
+        "logout": "POST /api/auth/logout"
+      },
+      "activities": {
+        "list": "GET /api/activities",
+        "create": "POST /api/activities (body: {title, category_id, tag_id?, start_time, end_time, rating?, notes?, activity_date?})",
+        "update": "PUT /api/activities/[id]",
+        "delete": "DELETE /api/activities/[id]"
+      },
+      "categories": {
+        "list": "GET /api/categories",
+        "create": "POST /api/categories (body: {name, color, icon?})",
+        "update": "PUT /api/categories/[id]",
+        "delete": "DELETE /api/categories/[id]"
+      },
+      "tags": {
+        "list": "GET /api/tags",
+        "listByCategory": "GET /api/tags/category/[categoryId]",
+        "create": "POST /api/tags (body: {category_id, name, color?})",
+        "update": "PUT /api/tags/[id]",
+        "delete": "DELETE /api/tags/[id]"
+      },
+      "reports": {
+        "filter": "POST /api/reports/filter (body: {startDate?, endDate?, categoryIds[], tagIds[], minRating?})",
+        "stats": "GET /api/reports/stats"
+      },
+      "settings": {
+        "getLanguage": "GET /api/settings/language",
+        "setLanguage": "PUT /api/settings/language (body: {language: 'en'|'es'})"
+      }
+    }
+  },
+
+  "pages": {
+    "auth": [
+      "app/auth/login/page.tsx",
+      "app/auth/signup/page.tsx"
+    ],
+    "core": [
+      "app/page.tsx (Dashboard - hoy's activities)",
+      "app/activities/add/page.tsx",
+      "app/activities/[id]/edit/page.tsx",
+      "app/reports/page.tsx",
+      "app/categories/page.tsx",
+      "app/settings/page.tsx"
+    ]
+  },
+
+  "components": {
+    "atoms": [
+      "Button (primary, secondary, ghost, destructive)",
+      "Input (text, password, email)",
+      "Select",
+      "DatePicker",
+      "TimePicker",
+      "RatingStars (interactivo + read-only)",
+      "Badge",
+      "Toast"
+    ],
+    "molecules": [
+      "ActivityCard",
+      "ActivityForm (con title field)",
+      "CategorySelector (chips de colores)",
+      "TagSelector (filtrado por categoría)",
+      "ReportFilters",
+      "LanguageToggle",
+      "ThemeToggle"
+    ],
+    "organisms": [
+      "DailyActivitiesList",
+      "ReportSection",
+      "CategoriesPanel",
+      "AuthForm"
+    ]
+  },
+
+  "dependencies": {
+    "core": {
+      "next": "^15.0.0",
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0",
+      "typescript": "^5.0.0"
+    },
+    "database": {
+      "@supabase/supabase-js": "^2.38.0"
+    },
+    "ui": {
+      "tailwindcss": "^3.3.0",
+      "next-themes": "^0.2.1"
+    },
+    "state": {
+      "zustand": "^4.4.0"
+    },
+    "pwa": {
+      "next-pwa": "^5.6.0"
+    },
+    "utilities": {
+      "clsx": "^2.0.0",
+      "date-fns": "^2.30.0"
+    }
+  },
+
+  "deployment": {
+    "frontend": {
+      "platform": "Vercel",
+      "environment": "Conectar variables de Supabase (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)",
+      "preview": "Automático con cada push",
+      "production": "Main branch"
+    },
+    "database": {
+      "platform": "Supabase",
+      "setup": "Ejecutar SQL schema en SQL Editor"
+    },
+    "pwa": {
+      "installable": true,
+      "offlineSupport": true,
+      "manifest": "public/manifest.json"
+    },
+    "cost": {
+      "frontend": "$0 (Vercel tier gratuito)",
+      "database": "$0 (Supabase tier gratuito)",
+      "total": "$0/mes"
+    }
+  },
+
+  "developmentWorkflow": {
+    "phase1": {
+      "name": "Agent Backend Setup & Database",
+      "estimatedTime": "2-3 horas",
+      "tasks": [
+        "SQL schema + RLS policies",
+        "lib/types.ts",
+        "lib/supabase.ts",
+        "API routes (15 endpoints)"
+      ]
+    },
+    "phase2": {
+      "name": "Agent Frontend Components & Pages",
+      "estimatedTime": "4-5 horas",
+      "tasks": [
+        "i18n setup",
+        "Components (atoms, molecules, organisms)",
+        "Pages (auth, dashboard, reports, settings)",
+        "Dark mode + responsividad"
+      ]
+    },
+    "phase3": {
+      "name": "Integration & Testing",
+      "estimatedTime": "1-2 horas",
+      "tasks": [
+        "End-to-end testing",
+        "PWA manifest",
+        "Testing en múltiples devices",
+        "Performance optimization"
+      ]
+    },
+    "totalEstimated": "7-10 horas"
+  },
+
+  "fileStructure": {
+    "root": [
+      "app/",
+      "components/",
+      "lib/",
+      "public/",
+      ".claude-spec/",
+      ".env.local",
+      "package.json",
+      "project.json",
+      "tsconfig.json",
+      "tailwind.config.ts",
+      "next.config.ts"
+    ],
+    "app": [
+      "layout.tsx",
+      "page.tsx (Dashboard)",
+      "globals.css",
+      "api/",
+      "auth/",
+      "activities/",
+      "reports/",
+      "categories/",
+      "settings/"
+    ],
+    "lib": [
+      "supabase.ts",
+      "db-queries.ts",
+      "types.ts",
+      "store.ts",
+      "locale-utils.ts",
+      "i18n/",
+      "translations/"
+    ],
+    "components": [
+      "LanguageToggle.tsx",
+      "LocalizedDate.tsx",
+      "Toast.tsx",
+      "RatingStars.tsx",
+      "ActivityCard.tsx",
+      "ActivityForm.tsx",
+      "CategorySelector.tsx",
+      "TagSelector.tsx"
+    ],
+    ".claude-spec": [
+      "DATABASE_SCHEMA.md",
+      "API_ENDPOINTS.md",
+      "COMPONENT_SPEC.md",
+      "DESIGN_SYSTEM.md",
+      "MULTILANGUAGE.md",
+      "AGENT_INSTRUCTIONS.md",
+      "COLOR_SCHEME.md"
+    ]
+  },
+
+  "notes": {
+    "critical": [
+      "🔴 Instala Caveman Mode plugin ANTES de ejecutar agentes",
+      "❌ CERO COMENTARIOS en código",
+      "✅ Caveman coding (auto-documentado)",
+      "✅ Bordes cuadrados (rounded-none)",
+      "✅ Cero animaciones (excepto toast 600-900ms)",
+      "✅ Title field es obligatorio en activities",
+      "✅ Máximo 7 categorías (4 default + 3 custom)",
+      "✅ Multiidioma: UI traduce, data user NO"
+    ],
+    "reminders": [
+      "Agent Backend debe terminar ANTES de Agent Frontend",
+      "Cambio de idioma requiere reload de página",
+      "Toast aparece en esquina fija, NO cubre primary action",
+      "Rating: 0 = sin rating, 1-5 = estrellas",
+      "Responsivo: 390px mobile, desktop adaptado"
+    ]
+  }
+}
