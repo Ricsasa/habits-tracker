@@ -13,9 +13,10 @@ export default function EditActivityPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const { showToast } = useToast();
-  const { data: categories = [] } = useCategories();
-  const { data: tags = [] } = useTags();
+  const { data: categories = [], isPending: categoriesPending } = useCategories();
+  const { data: tags = [], isPending: tagsPending } = useTags();
   const { data: activity } = useActivity(params.id);
+  const isLoading = !activity || categoriesPending || tagsPending;
   const { mutateAsync: updateActivity } = useUpdateActivity();
 
   async function handleSubmit(input: ActivityInput) {
@@ -33,7 +34,9 @@ export default function EditActivityPage() {
       <h1 className="band-rule mb-8 text-4xl font-700 text-content-primary dark:text-content-primary-dark">
         {t('buttons.edit')}
       </h1>
-      {activity ? (
+      {isLoading ? (
+        <LoadingIndicator />
+      ) : (
         <ActivityForm
           activity={activity}
           categories={categories}
@@ -41,8 +44,6 @@ export default function EditActivityPage() {
           onSubmit={handleSubmit}
           onCancel={() => router.push('/dashboard')}
         />
-      ) : (
-        <LoadingIndicator />
       )}
     </>
   );

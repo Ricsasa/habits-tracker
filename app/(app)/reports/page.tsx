@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import LoadingIndicator from '@/components/atoms/LoadingIndicator';
 import ReportFilters from '@/components/molecules/ReportFilters';
 import ReportResults, { ReportStats } from '@/components/organisms/ReportResults';
 import { useToast } from '@/components/ToastProvider';
@@ -23,7 +24,10 @@ export default function ReportsPage() {
   const { data: tags = [] } = useTags();
   const filters = useAppStore((state) => state.reportFilters);
   const setFilters = useAppStore((state) => state.setReportFilters);
-  const { mutate: runReport, data: report } = useFilterReports();
+  const { mutate: runReport, data: report, status } = useFilterReports();
+  // 'idle' covers the render before the effect fires, so the zeroed stats never
+  // flash before the first request starts.
+  const isLoading = status === 'idle' || status === 'pending';
 
   useEffect(() => {
     runReport(filters, {
@@ -43,7 +47,13 @@ export default function ReportsPage() {
           value={filters}
           onChange={setFilters}
         />
-        <ReportResults activities={report?.activities ?? []} stats={toStats(report)} />
+        {isLoading ? (
+          <div className="border border-border-light bg-surface-secondary p-10 text-center rounded-none dark:border-border-light-dark dark:bg-surface-tertiary-dark">
+            <LoadingIndicator />
+          </div>
+        ) : (
+          <ReportResults activities={report?.activities ?? []} stats={toStats(report)} />
+        )}
       </div>
     </>
   );

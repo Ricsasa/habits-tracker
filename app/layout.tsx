@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import QueryProvider from '@/components/QueryProvider';
 import ThemeProvider from '@/components/ThemeProvider';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </LanguageProvider>
           </ThemeProvider>
         </QueryProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
