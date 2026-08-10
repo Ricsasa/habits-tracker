@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 import { Activity, ActivityInput } from '@/lib/types';
-import { combineDateTime, minutesBetween, timeInputValue, todayIso } from '@/lib/locale-utils';
+import {
+  addOneHour,
+  combineDateTime,
+  currentTimeValue,
+  minutesBetween,
+  timeInputValue,
+  todayIso,
+} from '@/lib/locale-utils';
 
 export interface ActivityFormValues {
   title: string;
@@ -19,13 +26,14 @@ export type FieldErrors = Partial<Record<'title' | 'category' | 'time', string>>
 
 function initialValues(activity?: Activity): ActivityFormValues {
   if (!activity) {
+    const startTime = currentTimeValue();
     return {
       title: '',
       categoryId: null,
       tagId: null,
       date: todayIso(),
-      startTime: '08:00',
-      endTime: '09:00',
+      startTime,
+      endTime: addOneHour(startTime),
       rating: 0,
       notes: '',
     };
@@ -68,7 +76,14 @@ export function useActivityForm(activity?: Activity) {
   const [errors, setErrors] = useState<FieldErrors>({});
 
   function update<K extends keyof ActivityFormValues>(key: K, value: ActivityFormValues[K]) {
-    setValues((current) => ({ ...current, [key]: value }));
+    setValues((current) => {
+      // Moving the start time keeps the one-hour default range.
+      if (key === 'startTime') {
+        const startTime = value as string;
+        return { ...current, startTime, endTime: addOneHour(startTime) };
+      }
+      return { ...current, [key]: value };
+    });
   }
 
   const durationMinutes = minutesBetween(values.date, values.startTime, values.endTime);

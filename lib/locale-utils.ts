@@ -71,8 +71,28 @@ export function timeInputValue(timestamp: string): string {
   return `${hours}:${minutes}`;
 }
 
+/**
+ * Builds an absolute UTC timestamp from a local calendar date and wall-clock
+ * time. Naive strings such as "2026-08-09T20:00:00" are read as UTC by
+ * Postgres, which shifted stored times by the user's offset.
+ */
 export function combineDateTime(isoDate: string, time: string): string {
-  return `${isoDate}T${time}:00`;
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  return new Date(year, month - 1, day, hours, minutes, 0, 0).toISOString();
+}
+
+export function currentTimeValue(now: Date = new Date()): string {
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+/** Adds one hour, clamped to 23:59 so the range stays inside one day. */
+export function addOneHour(time: string): string {
+  const [hours, minutes] = time.split(':').map(Number);
+  if (hours + 1 > 23) return '23:59';
+  return `${String(hours + 1).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
 export function minutesBetween(isoDate: string, start: string, end: string): number {
