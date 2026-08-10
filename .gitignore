@@ -38,3 +38,5 @@ Thumbs.db
 public/sw.js
 public/workbox-*.js
 public/workbox-*.js.map
+.vercel
+.env*
