@@ -33,8 +33,7 @@ export default function ReportFilters({
 }: ReportFiltersProps) {
   const { t } = useLanguage();
   const categoryIds = value.categoryIds ?? [];
-  const scopedTags =
-    categoryIds.length === 0 ? tags : tags.filter((tag) => categoryIds.includes(tag.category_id));
+  const scopedTags = tags.filter((tag) => categoryIds.includes(tag.category_id));
 
   const ratingOptions = [1, 2, 3, 4, 5].map((rating) => ({
     value: String(rating),
@@ -68,19 +67,25 @@ export default function ReportFilters({
 
       <div className="rounded-none">
         <span className={LABEL}>{t('reports.filterByTag')}</span>
-        <div className="flex flex-wrap gap-1.5 rounded-none">
-          {scopedTags.map((tag) => (
-            <button
-              key={tag.id}
-              type="button"
-              aria-pressed={(value.tagIds ?? []).includes(tag.id)}
-              onClick={() => onChange({ ...value, tagIds: toggle(value.tagIds, tag.id) })}
-              className={`${CHIP} ${(value.tagIds ?? []).includes(tag.id) ? SELECTED : UNSELECTED}`}
-            >
-              {translateTagName(tag.name, t)}
-            </button>
-          ))}
-        </div>
+        {categoryIds.length === 0 ? (
+          <p className="text-xs text-content-tertiary dark:text-content-tertiary-dark">
+            {t('reports.selectCategoryForTags')}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-1.5 rounded-none">
+            {scopedTags.map((tag) => (
+              <button
+                key={tag.id}
+                type="button"
+                aria-pressed={(value.tagIds ?? []).includes(tag.id)}
+                onClick={() => onChange({ ...value, tagIds: toggle(value.tagIds, tag.id) })}
+                className={`${CHIP} ${(value.tagIds ?? []).includes(tag.id) ? SELECTED : UNSELECTED}`}
+              >
+                {translateTagName(tag.name, t)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 rounded-none">

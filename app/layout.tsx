@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
+import QueryProvider from '@/components/QueryProvider';
 import ThemeProvider from '@/components/ThemeProvider';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
 import { ToastProvider } from '@/components/ToastProvider';
@@ -37,12 +38,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-surface-primary text-content-primary dark:bg-surface-primary-dark dark:text-content-primary-dark">
-        <ThemeProvider>
-          <LanguageProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+      <body className="text-content-primary dark:text-content-primary-dark">
+        <QueryProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

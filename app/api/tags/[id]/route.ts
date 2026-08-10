@@ -1,5 +1,5 @@
 import { authenticateRequest } from '@/lib/supabase';
-import { deleteTag, updateTag } from '@/lib/db-queries';
+import { deleteTag, updateTag } from '@/lib/db-server';
 import { TagInput } from '@/lib/types';
 import { validateColor, validateName } from '@/lib/validation';
 import {

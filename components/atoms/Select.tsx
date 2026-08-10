@@ -17,7 +17,7 @@ export interface SelectProps {
 }
 
 const BASE =
-  'w-full appearance-none px-3 py-2.5 border text-base rounded-none border-border-light focus:border-2 focus:border-category-study dark:border-border-light-dark dark:focus:border-category-study-dark';
+  'w-full appearance-none px-3 py-2.5 border rounded-none border-border-light focus:border-2 focus:border-category-study dark:border-border-light-dark dark:focus:border-category-study-dark';
 
 export default function Select({
   value,
@@ -36,7 +36,7 @@ export default function Select({
       {label ? (
         <label
           htmlFor={id}
-          className="mb-1.5 block text-base font-600 text-content-primary dark:text-content-primary-dark"
+          className="mb-1.5 block form-label font-600 text-content-primary dark:text-content-primary-dark"
         >
           {label}
         </label>

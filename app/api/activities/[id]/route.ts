@@ -1,5 +1,5 @@
 import { authenticateRequest } from '@/lib/supabase';
-import { deleteActivity, getActivity, updateActivity } from '@/lib/db-queries';
+import { deleteActivity, getActivity, updateActivity } from '@/lib/db-server';
 import { Activity, ActivityInput } from '@/lib/types';
 import { validateActivityInput } from '@/lib/validation';
 import {
@@ -15,7 +15,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 function mergeActivity(existing: Activity, patch: Partial<ActivityInput>): ActivityInput {
   return {
-    title: patch.title ?? existing.title,
+    // title is nullable, so an explicit null clears it rather than falling back
+    title: patch.title !== undefined ? patch.title : existing.title,
     category_id: patch.category_id ?? existing.category_id,
     tag_id: patch.tag_id !== undefined ? patch.tag_id : existing.tag_id,
     start_time: patch.start_time ?? existing.start_time,

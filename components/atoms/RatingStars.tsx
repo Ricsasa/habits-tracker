@@ -11,7 +11,10 @@ export interface RatingStarsProps {
 
 const STARS = [1, 2, 3, 4, 5];
 
-const SIZES = { sm: 'text-xs', md: 'text-xl' };
+// Deliberate exception to the boxed-control language: a star is already a mark,
+// so a border and fill around it would read as a second frame. The glyph itself
+// carries the state, which is why it runs larger than any other inline control.
+const SIZES = { sm: 'text-base', md: 'text-3xl' };
 
 export default function RatingStars({
   rating,
@@ -24,14 +27,17 @@ export default function RatingStars({
 
   if (readOnly || !onChange) {
     return (
-      <span className={`${SIZES[size]} text-category-rating rounded-none`} aria-label={label}>
+      <span
+        className={`${SIZES[size]} leading-none text-category-rating rounded-none`}
+        aria-label={label}
+      >
         {STARS.map((star) => (star <= rating ? '★' : '☆')).join('')}
       </span>
     );
   }
 
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-1.5 rounded-none">
+    <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1 rounded-none">
       {STARS.map((star) => (
         <button
           key={star}
@@ -39,7 +45,7 @@ export default function RatingStars({
           aria-label={t('forms.ratingSet', { value: star })}
           aria-pressed={star <= rating}
           onClick={() => onChange(star === rating ? 0 : star)}
-          className={`border border-border-light bg-surface-primary px-3 py-2 text-xl rounded-none dark:border-border-light-dark dark:bg-surface-secondary-dark ${
+          className={`bg-transparent px-1 py-1 text-4xl leading-none rounded-none transition-colors ${
             star <= rating
               ? 'text-category-rating'
               : 'text-border-medium dark:text-content-tertiary-dark'
@@ -48,7 +54,7 @@ export default function RatingStars({
           ★
         </button>
       ))}
-      <span className="self-center text-xs text-content-tertiary dark:text-content-tertiary-dark">
+      <span className="ml-1 self-center text-xs text-content-tertiary dark:text-content-tertiary-dark">
         {rating === 0 ? t('common.unrated') : String(rating)}
       </span>
     </div>

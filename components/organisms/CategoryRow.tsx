@@ -3,6 +3,7 @@
 import { Category, Tag } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { translateCategoryName, translateTagName } from '@/lib/translations/categoryNames';
+import Icon from '@/components/atoms/Icon';
 
 export interface CategoryRowProps {
   category: Category;
@@ -15,7 +16,8 @@ export interface CategoryRowProps {
 }
 
 const ACTION =
-  'border border-border-light bg-surface-primary px-2 py-1 text-xs font-600 text-content-primary rounded-none hover:bg-surface-tertiary dark:border-border-light-dark dark:bg-surface-secondary-dark dark:text-content-primary-dark dark:hover:bg-surface-tertiary-dark';
+  'flex h-7 w-7 items-center justify-center border border-border-light bg-surface-primary text-content-primary rounded-none hover:bg-surface-tertiary dark:border-border-light-dark dark:bg-surface-secondary-dark dark:text-content-primary-dark dark:hover:bg-surface-tertiary-dark';
+const ACTION_DANGER = `${ACTION} hover:border-red-600 hover:text-red-600 dark:hover:border-red-500 dark:hover:text-red-500`;
 
 export default function CategoryRow({
   category,
@@ -46,14 +48,32 @@ export default function CategoryRow({
           </div>
         </div>
         <div className="flex flex-shrink-0 gap-2 rounded-none">
-          <button type="button" className={ACTION} onClick={() => onAddTag(category)}>
-            {t('buttons.addTag')}
+          <button
+            type="button"
+            className={ACTION}
+            title={t('buttons.addTag')}
+            aria-label={t('buttons.addTag')}
+            onClick={() => onAddTag(category)}
+          >
+            <Icon name="plus" />
           </button>
-          <button type="button" className={ACTION} onClick={() => onEdit(category)}>
-            {t('buttons.edit')}
+          <button
+            type="button"
+            className={ACTION}
+            title={t('buttons.edit')}
+            aria-label={t('buttons.edit')}
+            onClick={() => onEdit(category)}
+          >
+            <Icon name="pencil" />
           </button>
-          <button type="button" className={ACTION} onClick={() => onDelete(category)}>
-            {t('buttons.delete')}
+          <button
+            type="button"
+            className={ACTION_DANGER}
+            title={t('buttons.delete')}
+            aria-label={t('buttons.delete')}
+            onClick={() => onDelete(category)}
+          >
+            <Icon name="trash" />
           </button>
         </div>
       </div>
@@ -66,11 +86,23 @@ export default function CategoryRow({
                 {translateTagName(tag.name, t)}
               </span>
               <span className="flex gap-2 rounded-none">
-                <button type="button" className={ACTION} onClick={() => onEditTag(tag)}>
-                  {t('buttons.edit')}
+                <button
+                  type="button"
+                  className={ACTION}
+                  title={t('buttons.edit')}
+                  aria-label={t('buttons.edit')}
+                  onClick={() => onEditTag(tag)}
+                >
+                  <Icon name="pencil" />
                 </button>
-                <button type="button" className={ACTION} onClick={() => onDeleteTag(tag)}>
-                  {t('buttons.delete')}
+                <button
+                  type="button"
+                  className={ACTION_DANGER}
+                  title={t('buttons.delete')}
+                  aria-label={t('buttons.delete')}
+                  onClick={() => onDeleteTag(tag)}
+                >
+                  <Icon name="trash" />
                 </button>
               </span>
             </li>

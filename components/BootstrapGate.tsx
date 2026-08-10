@@ -1,8 +1,11 @@
 'use client';
 
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useBootstrap } from '@/lib/db-queries';
+import LoadingIndicator from './atoms/LoadingIndicator';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { useToast } from './ToastProvider';
 
@@ -12,74 +15,42 @@ export interface BootstrapGateProps {
 
 export default function BootstrapGate({ children }: BootstrapGateProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { t } = useLanguage();
   const { showToast } = useToast();
-  const [isReady, setIsReady] = useState(false);
+  const { data: status, isPending, isError } = useBootstrap();
 
   const endSession = useCallback(async () => {
-    setIsReady(false);
     await supabase.auth.signOut();
+    queryClient.clear();
     router.replace('/auth/login');
-  }, [router]);
+  }, [queryClient, router]);
 
   useEffect(() => {
-    let isActive = true;
+    if (status === 'unauthenticated') void endSession();
+  }, [status, endSession]);
 
-    async function verifyAndBootstrap() {
-      const { data, error } = await supabase.auth.getUser();
-      if (!isActive) return;
-      if (error || !data.user) {
-        await endSession();
-        return;
-      }
+  useEffect(() => {
+    if (isError) showToast(t('common.error'), 'error');
+  }, [isError, showToast, t]);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!isActive) return;
-      if (!token) {
-        await endSession();
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/bootstrap', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        });
-        if (!isActive) return;
-        if (response.status === 401) {
-          await endSession();
-          return;
-        }
-        if (!response.ok) showToast(t('common.error'), 'error');
-      } catch {
-        if (!isActive) return;
-        showToast(t('common.error'), 'error');
-      }
-
-      setIsReady(true);
-    }
-
-    void verifyAndBootstrap();
-
+  useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        setIsReady(false);
-        router.replace('/auth/login');
-      }
+      if (event !== 'SIGNED_OUT' && session) return;
+      queryClient.clear();
+      router.replace('/auth/login');
     });
+    return () => data.subscription.unsubscribe();
+  }, [queryClient, router]);
 
-    return () => {
-      isActive = false;
-      data.subscription.unsubscribe();
-    };
-  }, [endSession, router, showToast, t]);
-
-  if (!isReady) {
+  // The shell already reserves a full viewport with generous chrome padding, so
+  // the gate only claims a short band and centres the mark inside it. That keeps
+  // the label inside the first screen on mobile instead of below the fold.
+  if (isPending || status === 'unauthenticated') {
     return (
-      <p className="text-base text-content-tertiary dark:text-content-tertiary-dark">
-        {t('common.loading')}
-      </p>
+      <div className="flex min-h-[40dvh] items-center justify-center">
+        <LoadingIndicator />
+      </div>
     );
   }
 

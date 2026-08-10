@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useCallback, useEffect, useMemo, useState, ReactNode } from 'react';
+import { createContext, useCallback, useMemo, ReactNode } from 'react';
 import { Language } from '@/lib/types';
-import { supabase } from '@/lib/supabase';
+import { useLanguageSetting, useSetLanguage } from '@/lib/db-queries';
 import en from '@/lib/translations/en.json';
 import es from '@/lib/translations/es.json';
 
@@ -41,54 +41,18 @@ function fromNavigator(): Language {
   return navigator.language.toLowerCase().startsWith('es') ? 'es' : 'en';
 }
 
-async function fetchStoredLanguage(): Promise<Language | null> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) return null;
-  const response = await fetch('/api/settings/language', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) return null;
-  const body = (await response.json()) as { language?: Language };
-  return body.language ?? null;
-}
-
-async function persistLanguage(language: Language): Promise<void> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) return;
-  await fetch('/api/settings/language', {
-    method: 'PUT',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ language }),
-  });
-}
-
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('en');
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: storedLanguage, isLoading } = useLanguageSetting();
+  const { mutateAsync: persistLanguage } = useSetLanguage();
+  const language = storedLanguage ?? (isLoading ? 'en' : fromNavigator());
 
-  useEffect(() => {
-    let active = true;
-    fetchStoredLanguage()
-      .then((stored) => {
-        if (active) setLanguageState(stored ?? fromNavigator());
-      })
-      .catch(() => {
-        if (active) setLanguageState(fromNavigator());
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const setLanguage = useCallback(async (next: Language) => {
-    await persistLanguage(next);
-    window.location.reload();
-  }, []);
+  const setLanguage = useCallback(
+    async (next: Language) => {
+      await persistLanguage(next);
+      window.location.reload();
+    },
+    [persistLanguage]
+  );
 
   const t = useCallback(
     (key: string, vars?: Vars) => {

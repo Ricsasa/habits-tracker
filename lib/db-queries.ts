@@ -1,4 +1,9 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest, authHeaders } from './api-client';
+import { queryKeys } from './query-keys';
+import { supabase } from './supabase';
 import {
   Activity,
   ActivityInput,
@@ -9,252 +14,240 @@ import {
   ReportFilters,
   Tag,
   TagInput,
-  Theme,
-  UserSettings,
 } from './types';
 
-const ACTIVITY_SELECT =
-  '*, category:categories(id, name, color), tag:tags(id, name, color)';
-
-function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
-  if (result.error) throw new Error(result.error.message);
-  return result.data as T;
+export interface ReportSummary {
+  total: number;
+  totalMinutes: number;
+  averageRating: number;
 }
 
-export async function listCategories(client: SupabaseClient, userId: string): Promise<Category[]> {
-  return unwrap(
-    await client.from('categories').select('*').eq('user_id', userId).order('created_at')
+export interface ReportPayload {
+  activities: ActivityWithRelations[];
+  summary: ReportSummary;
+}
+
+export type BootstrapStatus = 'ready' | 'unauthenticated';
+
+async function runBootstrap(): Promise<BootstrapStatus> {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session?.access_token) return 'unauthenticated';
+  const response = await fetch('/api/bootstrap', {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  if (response.status === 401) return 'unauthenticated';
+  if (!response.ok) throw new Error('bootstrap_failed');
+  return 'ready';
+}
+
+export function useBootstrap() {
+  return useQuery({
+    queryKey: queryKeys.bootstrap.all,
+    queryFn: runBootstrap,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+}
+
+function activitiesPath(date?: string): string {
+  return date ? `/api/activities?date=${date}` : '/api/activities';
+}
+
+async function fetchActivities(date?: string): Promise<ActivityWithRelations[]> {
+  const { activities } = await apiRequest<{ activities: ActivityWithRelations[] }>(
+    activitiesPath(date),
+    'GET'
   );
+  return activities;
 }
 
-export async function countCategories(client: SupabaseClient, userId: string): Promise<number> {
-  const { count, error } = await client
-    .from('categories')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId);
-  if (error) throw new Error(error.message);
-  return count ?? 0;
+export function useActivities(date?: string) {
+  return useQuery({
+    queryKey: date ? queryKeys.activities.byDate(date) : queryKeys.activities.all,
+    queryFn: () => fetchActivities(date),
+  });
 }
 
-export async function createCategory(
-  client: SupabaseClient,
-  userId: string,
-  input: CategoryInput
-): Promise<Category> {
-  const row = { user_id: userId, name: input.name.trim(), color: input.color, is_default: false };
-  return unwrap(await client.from('categories').insert(row).select('*').single());
+export function useActivity(activityId: string) {
+  return useQuery({
+    queryKey: queryKeys.activities.byId(activityId),
+    queryFn: async () => {
+      const activities = await fetchActivities();
+      return activities.find((activity) => activity.id === activityId) ?? null;
+    },
+  });
 }
 
-export async function updateCategory(
-  client: SupabaseClient,
-  userId: string,
-  categoryId: string,
-  patch: Partial<CategoryInput>
-): Promise<Category | null> {
-  const { data, error } = await client
-    .from('categories')
-    .update(patch)
-    .eq('id', categoryId)
-    .eq('user_id', userId)
-    .select('*')
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data as Category | null;
+export function useCategories() {
+  return useQuery({
+    queryKey: queryKeys.categories.all,
+    queryFn: async () => {
+      const { categories } = await apiRequest<{ categories: Category[] }>('/api/categories', 'GET');
+      return categories;
+    },
+  });
 }
 
-export async function deleteCategory(
-  client: SupabaseClient,
-  userId: string,
-  categoryId: string
-): Promise<boolean> {
-  const { data, error } = await client
-    .from('categories')
-    .delete()
-    .eq('id', categoryId)
-    .eq('user_id', userId)
-    .select('id')
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data !== null;
+export function useTags(categoryId?: string) {
+  return useQuery({
+    queryKey: categoryId ? queryKeys.tags.byCategory(categoryId) : queryKeys.tags.all,
+    queryFn: async () => {
+      const path = categoryId ? `/api/tags?category_id=${categoryId}` : '/api/tags';
+      const { tags } = await apiRequest<{ tags: Tag[] }>(path, 'GET');
+      return tags;
+    },
+  });
 }
 
-export async function listTags(
-  client: SupabaseClient,
-  userId: string,
-  categoryId?: string
-): Promise<Tag[]> {
-  let query = client.from('tags').select('*').eq('user_id', userId);
-  if (categoryId) query = query.eq('category_id', categoryId);
-  return unwrap(await query.order('name'));
+export function useLanguageSetting() {
+  return useQuery({
+    queryKey: queryKeys.settings.language(),
+    queryFn: async () => {
+      const { language } = await apiRequest<{ language: Language }>(
+        '/api/settings/language',
+        'GET'
+      );
+      return language;
+    },
+  });
 }
 
-export async function createTag(
-  client: SupabaseClient,
-  userId: string,
-  input: TagInput
-): Promise<Tag> {
-  const row = {
-    user_id: userId,
-    category_id: input.category_id,
-    name: input.name.trim(),
-    color: input.color ?? '#e5e7eb',
-  };
-  return unwrap(await client.from('tags').insert(row).select('*').single());
+export function useCreateActivity() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: ActivityInput) => {
+      const { activity } = await apiRequest<{ activity: Activity }>(
+        '/api/activities',
+        'POST',
+        input
+      );
+      return activity;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.all });
+    },
+  });
 }
 
-export async function updateTag(
-  client: SupabaseClient,
-  userId: string,
-  tagId: string,
-  patch: Partial<TagInput>
-): Promise<Tag | null> {
-  const { data, error } = await client
-    .from('tags')
-    .update(patch)
-    .eq('id', tagId)
-    .eq('user_id', userId)
-    .select('*')
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data as Tag | null;
+export function useUpdateActivity() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, input }: { id: string; input: ActivityInput }) => {
+      const { activity } = await apiRequest<{ activity: Activity }>(
+        `/api/activities/${id}`,
+        'PUT',
+        input
+      );
+      return activity;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.all });
+    },
+  });
 }
 
-export async function deleteTag(
-  client: SupabaseClient,
-  userId: string,
-  tagId: string
-): Promise<boolean> {
-  const { data, error } = await client
-    .from('tags')
-    .delete()
-    .eq('id', tagId)
-    .eq('user_id', userId)
-    .select('id')
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data !== null;
+export function useDeleteActivity() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => apiRequest<{ success: boolean }>(`/api/activities/${id}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.all });
+    },
+  });
 }
 
-export async function listActivities(
-  client: SupabaseClient,
-  userId: string,
-  activityDate?: string
-): Promise<ActivityWithRelations[]> {
-  let query = client.from('activities').select(ACTIVITY_SELECT).eq('user_id', userId);
-  if (activityDate) query = query.eq('activity_date', activityDate);
-  return unwrap(await query.order('start_time', { ascending: false }));
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CategoryInput) =>
+      apiRequest<{ category: Category }>('/api/categories', 'POST', input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+    },
+  });
 }
 
-export async function getActivity(
-  client: SupabaseClient,
-  userId: string,
-  activityId: string
-): Promise<Activity | null> {
-  const { data, error } = await client
-    .from('activities')
-    .select('*')
-    .eq('id', activityId)
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data as Activity | null;
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<CategoryInput> }) =>
+      apiRequest<{ category: Category }>(`/api/categories/${id}`, 'PUT', patch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+    },
+  });
 }
 
-function toActivityRow(userId: string, input: ActivityInput) {
-  return {
-    user_id: userId,
-    category_id: input.category_id,
-    tag_id: input.tag_id ?? null,
-    title: input.title.trim(),
-    start_time: input.start_time,
-    end_time: input.end_time,
-    rating: input.rating ?? 0,
-    notes: input.notes ?? null,
-    activity_date: input.activity_date ?? input.start_time.slice(0, 10),
-  };
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => apiRequest<{ success: boolean }>(`/api/categories/${id}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
+    },
+  });
 }
 
-export async function createActivity(
-  client: SupabaseClient,
-  userId: string,
-  input: ActivityInput
-): Promise<Activity> {
-  const row = toActivityRow(userId, input);
-  return unwrap(await client.from('activities').insert(row).select('*').single());
+export function useCreateTag() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: TagInput) => apiRequest<{ tag: Tag }>('/api/tags', 'POST', input),
+    onSuccess: (_result, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tags.byCategory(variables.category_id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
+    },
+  });
 }
 
-export async function updateActivity(
-  client: SupabaseClient,
-  userId: string,
-  activityId: string,
-  input: ActivityInput
-): Promise<Activity | null> {
-  const row = toActivityRow(userId, input);
-  const { data, error } = await client
-    .from('activities')
-    .update(row)
-    .eq('id', activityId)
-    .eq('user_id', userId)
-    .select('*')
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data as Activity | null;
+export function useUpdateTag() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<TagInput> }) =>
+      apiRequest<{ tag: Tag }>(`/api/tags/${id}`, 'PUT', patch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
+    },
+  });
 }
 
-export async function deleteActivity(
-  client: SupabaseClient,
-  userId: string,
-  activityId: string
-): Promise<boolean> {
-  const { data, error } = await client
-    .from('activities')
-    .delete()
-    .eq('id', activityId)
-    .eq('user_id', userId)
-    .select('id')
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data !== null;
+export function useDeleteTag() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => apiRequest<{ success: boolean }>(`/api/tags/${id}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
+    },
+  });
 }
 
-export async function filterActivities(
-  client: SupabaseClient,
-  userId: string,
-  filters: ReportFilters
-): Promise<ActivityWithRelations[]> {
-  let query = client.from('activities').select(ACTIVITY_SELECT).eq('user_id', userId);
-  if (filters.startDate) query = query.gte('activity_date', filters.startDate);
-  if (filters.endDate) query = query.lte('activity_date', filters.endDate);
-  if (filters.categoryIds?.length) query = query.in('category_id', filters.categoryIds);
-  if (filters.tagIds?.length) query = query.in('tag_id', filters.tagIds);
-  if (filters.minRating !== undefined) query = query.gte('rating', filters.minRating);
-  if (filters.titleSearch) query = query.ilike('title', `%${filters.titleSearch}%`);
-  return unwrap(await query.order('activity_date', { ascending: false }));
+export function useFilterReports() {
+  return useMutation({
+    mutationFn: (filters: ReportFilters) =>
+      apiRequest<ReportPayload>('/api/reports/filter', 'POST', filters),
+  });
 }
 
-export async function getUserSettings(
-  client: SupabaseClient,
-  userId: string
-): Promise<UserSettings | null> {
-  const { data, error } = await client
-    .from('user_settings')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data as UserSettings | null;
-}
+export function useSetLanguage() {
+  const queryClient = useQueryClient();
 
-export async function upsertUserSettings(
-  client: SupabaseClient,
-  userId: string,
-  patch: { language?: Language; theme?: Theme }
-): Promise<UserSettings> {
-  return unwrap(
-    await client
-      .from('user_settings')
-      .upsert({ user_id: userId, ...patch }, { onConflict: 'user_id' })
-      .select('*')
-      .single()
-  );
+  return useMutation({
+    mutationFn: (language: Language) =>
+      apiRequest<{ language: Language }>('/api/settings/language', 'PUT', { language }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.language() });
+    },
+  });
 }

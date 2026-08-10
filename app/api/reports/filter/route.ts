@@ -1,5 +1,5 @@
 import { authenticateRequest } from '@/lib/supabase';
-import { filterActivities } from '@/lib/db-queries';
+import { filterActivities } from '@/lib/db-server';
 import { ActivityWithRelations, ReportFilters } from '@/lib/types';
 import { validateReportFilters } from '@/lib/validation';
 import { jsonError, jsonOk, readJsonBody, serverError, unauthorized } from '@/lib/api-response';

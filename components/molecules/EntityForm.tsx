@@ -52,7 +52,7 @@ export default function EntityForm({
       <div className="rounded-none">
         <label
           htmlFor="entity-color"
-          className="mb-1.5 block text-base font-600 text-content-primary dark:text-content-primary-dark"
+          className="mb-1.5 block form-label font-600 text-content-primary dark:text-content-primary-dark"
         >
           {t('forms.color')}
         </label>

@@ -3,9 +3,18 @@
 import { useState } from 'react';
 import { Category, Tag } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { useAppStore } from '@/lib/store';
+import {
+  useCreateCategory,
+  useCreateTag,
+  useDeleteCategory,
+  useDeleteTag,
+  useUpdateCategory,
+  useUpdateTag,
+} from '@/lib/db-queries';
 import { useToast } from '@/components/ToastProvider';
 import Button from '@/components/atoms/Button';
+import Icon from '@/components/atoms/Icon';
+import ConfirmDialog from '@/components/molecules/ConfirmDialog';
 import EntityForm from '@/components/molecules/EntityForm';
 import CategoryRow from './CategoryRow';
 
@@ -19,13 +28,21 @@ type Editor =
   | { kind: 'tag'; categoryId: string; tag?: Tag }
   | null;
 
+type PendingDelete = { kind: 'category'; category: Category } | { kind: 'tag'; tag: Tag } | null;
+
 const MAX_CATEGORIES = 7;
 
 export default function CategoriesPanel({ categories, tags }: CategoriesPanelProps) {
   const { t } = useLanguage();
   const { showToast } = useToast();
-  const store = useAppStore();
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+  const createTag = useCreateTag();
+  const updateTag = useUpdateTag();
+  const deleteTag = useDeleteTag();
   const [editor, setEditor] = useState<Editor>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
 
   async function run(action: Promise<unknown>, messageKey: string) {
     try {
@@ -41,30 +58,39 @@ export default function CategoriesPanel({ categories, tags }: CategoriesPanelPro
     if (editor?.kind !== 'category') return;
     const existing = editor.category;
     if (existing) {
-      await run(store.updateCategory(existing.id, { name, color }), 'messages.categoryUpdated');
+      await run(
+        updateCategory.mutateAsync({ id: existing.id, patch: { name, color } }),
+        'messages.categoryUpdated'
+      );
       return;
     }
-    await run(store.createCategory({ name, color }), 'messages.categoryCreated');
+    await run(createCategory.mutateAsync({ name, color }), 'messages.categoryCreated');
   }
 
   async function saveTag(name: string, color: string) {
     if (editor?.kind !== 'tag') return;
     const existing = editor.tag;
     if (existing) {
-      await run(store.updateTag(existing.id, { name, color }), 'messages.tagUpdated');
+      await run(
+        updateTag.mutateAsync({ id: existing.id, patch: { name, color } }),
+        'messages.tagUpdated'
+      );
       return;
     }
-    await run(store.createTag({ category_id: editor.categoryId, name, color }), 'messages.tagCreated');
+    await run(
+      createTag.mutateAsync({ category_id: editor.categoryId, name, color }),
+      'messages.tagCreated'
+    );
   }
 
-  function removeCategory(category: Category) {
-    if (!window.confirm(t('messages.confirmDeleteCategory'))) return;
-    void run(store.deleteCategory(category.id), 'messages.categoryDeleted');
-  }
-
-  function removeTag(tag: Tag) {
-    if (!window.confirm(t('messages.confirmDeleteTag'))) return;
-    void run(store.deleteTag(tag.id), 'messages.tagDeleted');
+  function confirmDelete() {
+    if (!pendingDelete) return;
+    const action =
+      pendingDelete.kind === 'category'
+        ? run(deleteCategory.mutateAsync(pendingDelete.category.id), 'messages.categoryDeleted')
+        : run(deleteTag.mutateAsync(pendingDelete.tag.id), 'messages.tagDeleted');
+    setPendingDelete(null);
+    void action;
   }
 
   const atLimit = categories.length >= MAX_CATEGORIES;
@@ -80,7 +106,10 @@ export default function CategoriesPanel({ categories, tags }: CategoriesPanelPro
           disabled={atLimit}
           onClick={() => setEditor({ kind: 'category' })}
         >
-          {t('buttons.addCategory')}
+          <span className="flex items-center gap-1.5">
+            <Icon name="plus" />
+            {t('buttons.addCategory')}
+          </span>
         </Button>
       </div>
 
@@ -121,13 +150,29 @@ export default function CategoriesPanel({ categories, tags }: CategoriesPanelPro
             category={category}
             tags={tags.filter((tag) => tag.category_id === category.id)}
             onEdit={(target) => setEditor({ kind: 'category', category: target })}
-            onDelete={removeCategory}
+            onDelete={(target) => setPendingDelete({ kind: 'category', category: target })}
             onAddTag={(target) => setEditor({ kind: 'tag', categoryId: target.id })}
             onEditTag={(tag) => setEditor({ kind: 'tag', categoryId: tag.category_id, tag })}
-            onDeleteTag={removeTag}
+            onDeleteTag={(tag) => setPendingDelete({ kind: 'tag', tag })}
           />
         ))}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={
+          pendingDelete?.kind === 'category'
+            ? t('categoriesPage.deleteCategory')
+            : t('categoriesPage.deleteTag')
+        }
+        message={
+          pendingDelete?.kind === 'category'
+            ? t('messages.confirmDeleteCategory')
+            : t('messages.confirmDeleteTag')
+        }
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </section>
   );
 }

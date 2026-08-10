@@ -1,5 +1,5 @@
 import { authenticateRequest } from '@/lib/supabase';
-import { countCategories, createCategory, listCategories } from '@/lib/db-queries';
+import { countCategories, createCategory, listCategories } from '@/lib/db-server';
 import { CategoryInput } from '@/lib/types';
 import { MAX_CATEGORIES_PER_USER, validateColor, validateName } from '@/lib/validation';
 import { jsonError, jsonOk, readJsonBody, serverError, unauthorized } from '@/lib/api-response';

@@ -145,7 +145,7 @@ Field order: title, category, tag, date, start time, end time, duration, rating,
 Duration is derived from start and end, displayed read-only, never an input.
 
 Client validation before submit:
-- title non-empty after trim, max 255 → `messages.titleRequired`
+- title optional, max 255 after trim → `messages.titleTooLong`
 - category selected
 - end time strictly after start time → `messages.invalidTimeRange`
 

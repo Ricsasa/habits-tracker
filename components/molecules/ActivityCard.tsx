@@ -3,7 +3,7 @@
 import { ActivityWithRelations } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { formatDuration, formatTimeRange } from '@/lib/locale-utils';
-import { translateTagName } from '@/lib/translations/categoryNames';
+import { translateCategoryName, translateTagName } from '@/lib/translations/categoryNames';
 import RatingStars from '@/components/atoms/RatingStars';
 import Badge from '@/components/atoms/Badge';
 
@@ -19,6 +19,14 @@ const ACTION =
 export default function ActivityCard({ activity, onEdit, onDelete }: ActivityCardProps) {
   const { t, language } = useLanguage();
 
+  // Title is optional, so fall back to the category name to keep the card's
+  // primary line from rendering empty.
+  const heading = activity.title?.trim()
+    ? activity.title
+    : activity.category
+      ? translateCategoryName(activity.category.name, t)
+      : '—';
+
   function handleDelete() {
     if (window.confirm(t('messages.confirmDeleteActivity'))) onDelete(activity.id);
   }
@@ -31,7 +39,7 @@ export default function ActivityCard({ activity, onEdit, onDelete }: ActivityCar
       />
       <div className="flex-1 rounded-none">
         <p className="text-sm font-600 text-content-primary dark:text-content-primary-dark">
-          {activity.title}
+          {heading}
         </p>
         <p className="text-xs text-content-secondary dark:text-content-secondary-dark">
           {formatTimeRange(activity.start_time, activity.end_time, language)} ·{' '}

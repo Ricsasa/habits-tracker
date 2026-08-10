@@ -1691,7 +1691,7 @@ Common patterns:
 ![Add Activity Form](./screens/03-AddActivity.png)
 
 **Fields:**
-- Activity title (required)
+- Activity title (optional)
 - Category selector (chips)
 - Tag selector
 - Start time picker

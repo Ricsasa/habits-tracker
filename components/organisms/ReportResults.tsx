@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ActivityWithRelations } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { useAppStore } from '@/lib/store';
+import { useDeleteActivity } from '@/lib/db-queries';
 import { formatDuration, formatRating } from '@/lib/locale-utils';
 import { translateCategoryName } from '@/lib/translations/categoryNames';
 import ActivityCard from '@/components/molecules/ActivityCard';
@@ -53,7 +53,7 @@ function ratingCounts(activities: ActivityWithRelations[]): number[] {
 export default function ReportResults({ activities, stats }: ReportResultsProps) {
   const { t, language } = useLanguage();
   const router = useRouter();
-  const deleteActivity = useAppStore((state) => state.deleteActivity);
+  const { mutate: deleteActivity } = useDeleteActivity();
   const categoryTotals = groupByCategory(activities);
   const maxMinutes = Math.max(1, ...categoryTotals.map((total) => total.minutes));
 

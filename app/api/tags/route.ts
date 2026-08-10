@@ -1,5 +1,5 @@
 import { authenticateRequest } from '@/lib/supabase';
-import { createTag, listTags } from '@/lib/db-queries';
+import { createTag, listTags } from '@/lib/db-server';
 import { TagInput } from '@/lib/types';
 import { validateColor, validateName } from '@/lib/validation';
 import { jsonError, jsonOk, readJsonBody, serverError, unauthorized } from '@/lib/api-response';

@@ -1,28 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import AppShell from '@/components/AppShell';
+import { useState } from 'react';
 import ActivityForm from '@/components/molecules/ActivityForm';
 import { useToast } from '@/components/ToastProvider';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { useAppStore } from '@/lib/store';
+import { useCategories, useCreateActivity, useTags } from '@/lib/db-queries';
 import { ActivityInput } from '@/lib/types';
 
 export default function AddActivityPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
-  const categories = useAppStore((state) => state.categories);
-  const tags = useAppStore((state) => state.tags);
-  const loadCategories = useAppStore((state) => state.loadCategories);
-  const loadTags = useAppStore((state) => state.loadTags);
-  const createActivity = useAppStore((state) => state.createActivity);
-  // Remounting the form is how it resets: useActivityForm holds no reset handle.
+  const { data: categories = [] } = useCategories();
+  const { data: tags = [] } = useTags();
+  const { mutateAsync: createActivity } = useCreateActivity();
   const [formKey, setFormKey] = useState(0);
-
-  useEffect(() => {
-    void loadCategories();
-    void loadTags();
-  }, [loadCategories, loadTags]);
 
   async function handleSubmit(input: ActivityInput) {
     try {
@@ -35,8 +26,8 @@ export default function AddActivityPage() {
   }
 
   return (
-    <AppShell>
-      <h1 className="mb-6 text-4xl font-700 text-content-primary dark:text-content-primary-dark">
+    <>
+      <h1 className="band-rule mb-8 text-4xl font-700 text-content-primary dark:text-content-primary-dark">
         {t('buttons.addActivity')}
       </h1>
       <ActivityForm
@@ -47,6 +38,6 @@ export default function AddActivityPage() {
         onCancel={() => setFormKey((key) => key + 1)}
         cancelLabel={t('buttons.clear')}
       />
-    </AppShell>
+    </>
   );
 }

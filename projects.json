@@ -114,24 +114,34 @@
     },
     "frontend": {
       "name": "Agent Frontend",
-      "responsibility": "Componentes, páginas, i18n, estado. NO toca app/api/ ni lib/types.ts.",
+      "responsibility": "Componentes, páginas, i18n, estado, TanStack Query. NO toca app/api/ ni lib/types.ts.",
+      "note": "Refactorizar codebase existente para usar TanStack Query, no escribir desde cero.",
       "executionOrder": [
-        "1. tailwind.config.ts (tokens semánticos, borderRadius DEFAULT '0')",
-        "2. app/globals.css",
-        "3. lib/translations/en.json y es.json",
-        "4. lib/translations/categoryNames.ts",
-        "5. lib/i18n/LanguageContext.tsx",
-        "6. lib/locale-utils.ts",
-        "7. lib/store.ts",
-        "8. app/layout.tsx (ThemeProvider, LanguageProvider, ToastProvider)",
-        "9. components/BootstrapGate.tsx (envuelve rutas autenticadas)",
-        "10. components/Toast.tsx y ToastProvider",
-        "11. Atoms: Button, Input, Select, TimePicker, DatePicker, RatingStars, Badge",
-        "12. Molecules: CategorySelector, TagSelector, ActivityForm, ActivityCard, ReportFilters, LanguageToggle, ThemeToggle",
-        "13. Organisms: DailyActivitiesList, CategoriesPanel, ReportResults, AuthForm",
-        "14. Pages: auth/login, auth/signup, page.tsx, activities/add, activities/[id]/edit, reports, categories, settings"
+        "1. lib/query-client.ts (QueryClient setup con defaults)",
+        "2. lib/query-keys.ts (hierarchical query keys namespaced)",
+        "3. lib/db-queries.ts (REESCRIBIR como hooks: useActivities, useCategories, useTags, etc.)",
+        "4. Actualizar componentes que hacen fetch para usar nuevos hooks de TanStack",
+        "5. Actualizar mutations para invalidar queries correctamente",
+        "6. lib/store.ts — mantener unchanged, UI state solamente",
+        "7. app/layout.tsx (agregar QueryClientProvider, mantener otros providers)",
+        "8. tailwind.config.ts (tokens semánticos, borderRadius DEFAULT '0')",
+        "9. app/globals.css",
+        "10. lib/translations/en.json y es.json",
+        "11. lib/translations/categoryNames.ts",
+        "12. lib/i18n/LanguageContext.tsx",
+        "13. lib/locale-utils.ts",
+        "14. components/BootstrapGate.tsx",
+        "15. components/Toast.tsx y ToastProvider",
+        "16. Atoms: Button, Input, Select, TimePicker, DatePicker, RatingStars, Badge",
+        "17. Molecules: CategorySelector, TagSelector, ActivityForm, ActivityCard, ReportFilters, LanguageToggle, ThemeToggle",
+        "18. Organisms: DailyActivitiesList, CategoriesPanel, ReportResults, AuthForm",
+        "19. Pages: auth/login, auth/signup, page.tsx, activities/add, activities/[id]/edit, reports, categories, settings"
       ],
       "criticalValidations": [
+        "TanStack Query maneja TODO el server state",
+        "Zustand maneja SOLO UI state",
+        "Query keys son hierarchical per TANSTACK_QUERY_SPEC.md",
+        "Invalidation explícita después de cada mutation",
         "rounded-none explícito en cada contenedor",
         "Cero transition-* y animate-*, sin librerías de animación",
         "Todo string visible pasa por t(), sin texto hardcodeado",
@@ -144,9 +154,42 @@
         ".claude-spec/COMPONENT_SPEC.md",
         ".claude-spec/DESIGN_SYSTEM.md",
         ".claude-spec/MULTILANGUAGE.md",
+        ".claude-spec/TANSTACK_QUERY_SPEC.md",
         ".claude-spec/AGENT_COORDINATION.md"
       ],
       "validation": "npx tsc --noEmit sin errores"
+    },
+    "testing": {
+      "name": "Agent Testing",
+      "responsibility": "Plan test strategy, generate unit tests, define mocks and patterns. NO integración end-to-end.",
+      "note": "Test lógica crítica (hooks, mutations, validaciones, RLS). Skip UI trivial y i18n.",
+      "executionOrder": [
+        "1. Review project.json and .claude-spec/TESTING_SPEC.md",
+        "2. Plan which files/functions to test (logic, not UI)",
+        "3. Create jest.config.js and setup.ts if missing",
+        "4. Create __tests__/ directory structure",
+        "5. Generate __tests__/lib/query-keys.test.ts",
+        "6. Generate __tests__/lib/db-queries.test.ts (all query hooks and mutations)",
+        "7. Generate __tests__/lib/store.test.ts",
+        "8. Generate __tests__/components/ActivityForm.test.tsx",
+        "9. Generate __tests__/components/BootstrapGate.test.tsx",
+        "10. Generate __tests__/api/bootstrap.test.ts",
+        "11. Generate __tests__/api/activities.test.ts"
+      ],
+      "criticalValidations": [
+        "Mock Supabase client, no llamadas reales a API",
+        "Mock TanStack Query con QueryClientProvider wrapper",
+        "Mock fetch para tests de API routes",
+        "Test happy path Y error path para cada mutation",
+        "Test validación (title requerido, rango de fechas, rating 0-5)",
+        "Test aislamiento RLS (usuario no puede acceder a datos de otros)",
+        "Test idempotencia (bootstrap corre dos veces = mismo resultado)",
+        "Test invalidación (mutation invalida las query keys correctas)"
+      ],
+      "specs": [
+        ".claude-spec/TESTING_SPEC.md"
+      ],
+      "validation": "npm test pasa todos los tests, coverage > 70%"
     }
   },
 
@@ -226,6 +269,22 @@
     },
     "changeLanguage": "Persiste a user_settings, luego reload de página",
     "specs": ".claude-spec/MULTILANGUAGE.md"
+  },
+
+  "caching": {
+    "strategy": "TanStack Query para deduplicación y caching automático",
+    "queryKeys": "Hierarchical, namespaced por dominio (activities, categories, tags, settings)",
+    "invalidation": "Explícita después de mutations, per TANSTACK_QUERY_SPEC.md",
+    "staleTime": "5 minutos",
+    "gcTime": "10 minutos",
+    "backgroundRefetch": "Automático cuando el usuario vuelve a enfocar la ventana",
+    "dedupe": "Dos requests simultáneos al mismo endpoint = una llamada"
+  },
+
+  "stateManagement": {
+    "tanstackQuery": "Server state (activities, categories, tags, settings) — automatic caching, invalidation, background refetch",
+    "zustand": "UI state solamente (activeTab, filters, expanded sections, modal visibility, form drafts) — no server data",
+    "boundary": "TanStack Query maneja todo lo que viene de o va a la API. Zustand maneja todo lo demás."
   },
 
   "ui": {
@@ -329,7 +388,7 @@
   },
 
   "components": {
-    "providers": ["LanguageProvider", "ThemeProvider", "ToastProvider", "BootstrapGate"],
+    "providers": ["LanguageProvider", "ThemeProvider", "ToastProvider", "QueryClientProvider", "BootstrapGate"],
     "atoms": ["Button", "Input", "Select", "TimePicker", "DatePicker", "RatingStars", "Badge", "Toast"],
     "molecules": ["CategorySelector", "TagSelector", "ActivityForm", "ActivityCard", "ReportFilters", "LanguageToggle", "ThemeToggle"],
     "organisms": ["DailyActivitiesList", "CategoriesPanel", "ReportResults", "AuthForm"]
@@ -344,9 +403,41 @@
     },
     "database": { "@supabase/supabase-js": "^2.38.0" },
     "ui": { "tailwindcss": "^3.3.0", "next-themes": "^0.2.1" },
-    "state": { "zustand": "^4.4.0" },
+    "state": { 
+      "zustand": "^4.4.0",
+      "@tanstack/react-query": "^5.101.4"
+    },
     "pwa": { "next-pwa": "^5.6.0" },
-    "utilities": { "clsx": "^2.0.0", "date-fns": "^2.30.0" }
+    "utilities": { "clsx": "^2.0.0", "date-fns": "^2.30.0" },
+    "devDependencies": {
+      "@types/node": "^20.0.0",
+      "@types/react": "^18.0.0",
+      "@types/react-dom": "^18.0.0",
+      "eslint": "^8.0.0",
+      "eslint-config-next": "^15.0.0",
+      "autoprefixer": "^10.4.0",
+      "postcss": "^8.4.0",
+      "@testing-library/react": "^15.0.0",
+      "@testing-library/jest-dom": "^6.1.0",
+      "@types/jest": "^29.0.0",
+      "jest": "^29.0.0",
+      "jest-environment-jsdom": "^29.0.0"
+    }
+  },
+
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+
+  "engines": {
+    "node": ">=22.0.0"
   },
 
   "deployment": {
@@ -362,8 +453,8 @@
   },
 
   "fileStructure": {
-    "root": ["app/", "components/", "lib/", "public/", ".claude-spec/", ".env.local", "package.json", "project.json", "tsconfig.json", "tailwind.config.ts", "next.config.ts"],
-    "lib": ["supabase.ts", "db-queries.ts", "types.ts", "store.ts", "locale-utils.ts", "i18n/", "translations/"],
+    "root": ["app/", "components/", "lib/", "public/", ".claude-spec/", "__tests__/", ".env.local", "package.json", "project.json", "tsconfig.json", "tailwind.config.ts", "next.config.ts", "jest.config.js"],
+    "lib": ["supabase.ts", "db-queries.ts", "types.ts", "store.ts", "query-client.ts", "query-keys.ts", "locale-utils.ts", "i18n/", "translations/"],
     ".claude-spec": [
       "DATABASE_SCHEMA.md",
       "API_ENDPOINTS.md",
@@ -371,8 +462,19 @@
       "DESIGN_SYSTEM.md",
       "MULTILANGUAGE.md",
       "AGENT_COORDINATION.md",
+      "TANSTACK_QUERY_SPEC.md",
+      "TESTING_SPEC.md",
       "COLOR_SCHEME.md",
       "screens/"
+    ],
+    "__tests__": [
+      "lib/query-keys.test.ts",
+      "lib/db-queries.test.ts",
+      "lib/store.test.ts",
+      "components/ActivityForm.test.tsx",
+      "components/BootstrapGate.test.tsx",
+      "api/bootstrap.test.ts",
+      "api/activities.test.ts"
     ]
   },
 
@@ -385,20 +487,33 @@
       "Seeding ocurre en primera carga autenticada, NO en signup (RLS bloquea antes de la sesión)",
       "Title es obligatorio en activities, 1-255 chars",
       "Máximo 7 categorías por usuario (4 default + 3 custom)",
-      "Multiidioma: UI y nombres default traducen, datos del usuario NO"
+      "Multiidioma: UI y nombres default traducen, datos del usuario NO",
+      "TanStack Query maneja TODO el server state",
+      "Zustand maneja SOLO UI state",
+      "Query keys son hierarchical y namespaced",
+      "Jest + React Testing Library para tests unitarios",
+      "Mock Supabase, no llamadas reales",
+      "Test lógica crítica (query hooks, mutations, validaciones, RLS)",
+      "No testear UI trivial ni i18n"
     ],
     "reminders": [
       "Agent Backend termina ANTES de Agent Frontend",
+      "Agent Frontend termina ANTES de Agent Testing",
       "Bootstrap: categorías antes que tags, referencias por id real nunca por nombre",
       "Bootstrap corre en cada mount autenticado, es idempotente",
       "Un bootstrap fallido no debe bloquear la app",
       "Cambio de idioma requiere reload",
       "Toast: role=status para éxito, role=alert para error",
-      "Validar layout a 390px en ambos idiomas"
+      "Validar layout a 390px en ambos idiomas",
+      "TanStack Query deduplica requests automáticamente",
+      "Invalidation explícita después de cada mutation",
+      "Background refetch cuando el usuario vuelve a enfocar la ventana",
+      "npm test debe pasar con coverage > 70%"
     ],
     "knownFailures": [
       "El seed en signup falla silenciosamente por RLS: sin sesión, auth.uid() es null",
-      "Un helper generado por un agente y llamado por otro se pierde si ningún spec lo nombra"
+      "Un helper generado por un agente y llamado por otro se pierde si ningún spec lo nombra",
+      "Llamadas duplicadas al mismo endpoint causan requests innecesarias sin TanStack Query"
     ]
   }
 }

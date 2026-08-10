@@ -149,7 +149,7 @@ CREATE TABLE activities (
   category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
   tag_id UUID REFERENCES tags(id) ON DELETE SET NULL,
   
-  title VARCHAR(255) NOT NULL,
+  title VARCHAR(255),
   start_time TIMESTAMP WITH TIME ZONE NOT NULL,
   end_time TIMESTAMP WITH TIME ZONE NOT NULL,
   duration_minutes INT GENERATED ALWAYS AS (
@@ -288,7 +288,7 @@ are never compared, modified, or counted against the seed.
 
 - 4 default categories per user (copied on signup)
 - Max 3 additional custom categories = 7 total
-- Activity title required, 1-255 chars
+- Activity title optional (nullable), max 255 chars; blank input stored as NULL
 - Rating 0-5 (0 = unrated)
 - 1:N relationships maintained on both default and user tables
 - RLS ensures user isolation

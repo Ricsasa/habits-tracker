@@ -31,7 +31,7 @@ Agent Backend **must** deliver:
 - 15 API routes under app/api/
 
 **Validations:**
-- title field: VARCHAR(255) NOT NULL
+- title field: VARCHAR(255) NULL (optional)
 - rating: INT CHECK (0-5)
 - start_time < end_time always
 - Max 7 categories per user

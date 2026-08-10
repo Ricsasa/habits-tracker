@@ -23,33 +23,38 @@ const config: Config = {
         'category-personal-dark': '#f97316',
         'category-spaces-dark': '#a78bfa',
 
-        // Surface colors (light mode)
-        'surface-primary': '#ffffff',
-        'surface-secondary': '#f9fafb',
-        'surface-tertiary': '#f3f4f6',
+        // Runtime accent, written per route onto the document root.
+        // Marks only: hover fills, active dots, title rules.
+        accent: 'var(--header-accent)',
+        'section-accent': 'var(--section-accent)',
+        'accent-ink': 'var(--accent-ink)',
 
-        // Surface colors (dark mode)
-        'surface-primary-dark': '#0f172a',
-        'surface-secondary-dark': '#1e293b',
-        'surface-tertiary-dark': '#334155',
+        // Surfaces are translucent white so they tint *with* the section band
+        // instead of sitting on top of it. Never make these opaque.
+        'surface-primary': 'rgb(255 255 255 / 0.5)',
+        'surface-secondary': 'rgb(255 255 255 / 0.35)',
+        'surface-tertiary': 'rgb(255 255 255 / 0.2)',
 
-        // Content colors (light mode)
-        'content-primary': '#111827',
-        'content-secondary': '#374151',
-        'content-tertiary': '#6b7280',
+        'surface-primary-dark': 'rgb(255 255 255 / 0.04)',
+        'surface-secondary-dark': 'rgb(255 255 255 / 0.07)',
+        'surface-tertiary-dark': 'rgb(255 255 255 / 0.1)',
 
-        // Content colors (dark mode)
-        'content-primary-dark': '#f1f5f9',
-        'content-secondary-dark': '#cbd5e1',
-        'content-tertiary-dark': '#94a3b8',
+        // Ink carries hierarchy, colour carries location: text never uses accents.
+        'content-primary': '#111111',
+        'content-secondary': '#4b4b4b',
+        'content-tertiary': '#6b6b63',
 
-        // Border colors (light mode)
-        'border-light': '#e5e7eb',
-        'border-medium': '#d1d5db',
+        'content-primary-dark': '#f1efe8',
+        'content-secondary-dark': '#a8a49b',
+        'content-tertiary-dark': '#86837b',
 
-        // Border colors (dark mode)
-        'border-light-dark': '#334155',
-        'border-medium-dark': '#475569',
+        // Hairlines are alphas, never solids: a fixed grey goes muddy on coral
+        // and disappears on yellow.
+        'border-light': 'rgb(0 0 0 / 0.06)',
+        'border-medium': 'rgb(0 0 0 / 0.12)',
+
+        'border-light-dark': 'rgb(255 255 255 / 0.1)',
+        'border-medium-dark': 'rgb(255 255 255 / 0.18)',
       },
       borderRadius: {
         DEFAULT: '0',

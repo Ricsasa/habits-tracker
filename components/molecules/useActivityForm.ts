@@ -31,7 +31,7 @@ function initialValues(activity?: Activity): ActivityFormValues {
     };
   }
   return {
-    title: activity.title,
+    title: activity.title ?? '',
     categoryId: activity.category_id,
     tagId: activity.tag_id,
     date: activity.activity_date,
@@ -44,8 +44,7 @@ function initialValues(activity?: Activity): ActivityFormValues {
 
 export function validateValues(values: ActivityFormValues): FieldErrors {
   const errors: FieldErrors = {};
-  const title = values.title.trim();
-  if (title.length === 0 || title.length > 255) errors.title = 'messages.titleRequired';
+  if (values.title.trim().length > 255) errors.title = 'messages.titleTooLong';
   if (!values.categoryId) errors.category = 'messages.categoryRequired';
   if (values.endTime <= values.startTime) errors.time = 'messages.invalidTimeRange';
   return errors;
@@ -53,7 +52,7 @@ export function validateValues(values: ActivityFormValues): FieldErrors {
 
 export function toActivityInput(values: ActivityFormValues): ActivityInput {
   return {
-    title: values.title.trim(),
+    title: values.title.trim() || null,
     category_id: values.categoryId as string,
     tag_id: values.tagId,
     start_time: combineDateTime(values.date, values.startTime),

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ActivityWithRelations } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { useAppStore } from '@/lib/store';
+import { useDeleteActivity } from '@/lib/db-queries';
 import { useToast } from '@/components/ToastProvider';
 import { formatDuration, formatLongDate, shiftIsoDate, todayIso } from '@/lib/locale-utils';
 import ActivityCard from '@/components/molecules/ActivityCard';
@@ -27,7 +27,7 @@ export default function DailyActivitiesList({
   const { t, language } = useLanguage();
   const router = useRouter();
   const { showToast } = useToast();
-  const deleteActivity = useAppStore((state) => state.deleteActivity);
+  const { mutateAsync: deleteActivity } = useDeleteActivity();
 
   const totalMinutes = activities.reduce((sum, item) => sum + item.duration_minutes, 0);
   const ordered = [...activities].sort((a, b) => a.start_time.localeCompare(b.start_time));
@@ -47,7 +47,7 @@ export default function DailyActivitiesList({
       <p className="text-base text-content-tertiary dark:text-content-tertiary-dark">
         {isToday ? t('dates.today') : formatLongDate(date, language)}
       </p>
-      <h1 className="mb-4 text-4xl font-700 text-content-primary dark:text-content-primary-dark">
+      <h1 className="band-rule mb-6 text-4xl font-700 text-content-primary dark:text-content-primary-dark">
         {formatLongDate(date, language)}
       </h1>
 

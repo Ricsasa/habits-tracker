@@ -1,5 +1,5 @@
 import { authenticateRequest } from '@/lib/supabase';
-import { getUserSettings, upsertUserSettings } from '@/lib/db-queries';
+import { getUserSettings, upsertUserSettings } from '@/lib/db-server';
 import { Language } from '@/lib/types';
 import { jsonError, jsonOk, readJsonBody, serverError, unauthorized } from '@/lib/api-response';
 

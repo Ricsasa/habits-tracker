@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 export interface InputProps {
   value: string;
@@ -11,10 +11,11 @@ export interface InputProps {
   error?: string;
   maxLength?: number;
   required?: boolean;
+  autoFocus?: boolean;
 }
 
 const BASE =
-  'w-full px-3 py-2.5 border bg-surface-primary text-content-primary text-base rounded-none placeholder-content-tertiary dark:bg-surface-primary-dark dark:text-content-primary-dark dark:placeholder-content-tertiary-dark';
+  'w-full px-3 py-2.5 border bg-surface-primary text-content-primary rounded-none placeholder-content-tertiary dark:bg-surface-primary-dark dark:text-content-primary-dark dark:placeholder-content-tertiary-dark';
 
 export default function Input({
   value,
@@ -25,8 +26,18 @@ export default function Input({
   error,
   maxLength,
   required = false,
+  autoFocus = false,
 }: InputProps) {
   const id = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus after mount rather than via the autoFocus attribute: the attribute
+  // only applies on the initial page load, so it misses inputs that appear
+  // later (a form opening in place).
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
+
   const border = error
     ? 'border-2 border-red-600 dark:border-red-500'
     : 'border-border-light focus:border-2 focus:border-category-study dark:border-border-light-dark dark:focus:border-category-study-dark';
@@ -35,13 +46,14 @@ export default function Input({
       {label ? (
         <label
           htmlFor={id}
-          className="mb-1.5 block text-base font-600 text-content-primary dark:text-content-primary-dark"
+          className="mb-1.5 block form-label font-600 text-content-primary dark:text-content-primary-dark"
         >
           {label}
         </label>
       ) : null}
       <input
         id={id}
+        ref={inputRef}
         type={type}
         value={value}
         required={required}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AppShell from '@/components/AppShell';
 import Button from '@/components/atoms/Button';
 import LanguageToggle from '@/components/molecules/LanguageToggle';
 import ThemeToggle from '@/components/molecules/ThemeToggle';
@@ -28,8 +27,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <AppShell>
-      <h1 className="mb-6 text-4xl font-700 text-content-primary dark:text-content-primary-dark">
+    <>
+      <h1 className="band-rule mb-8 text-4xl font-700 text-content-primary dark:text-content-primary-dark">
         {t('settings.title')}
       </h1>
 
@@ -68,6 +67,6 @@ export default function SettingsPage() {
           </p>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }

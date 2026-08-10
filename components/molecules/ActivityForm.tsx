@@ -22,7 +22,7 @@ export interface ActivityFormProps {
   cancelLabel?: string;
 }
 
-const LABEL = 'mb-2 block text-base font-600 text-content-primary dark:text-content-primary-dark';
+const LABEL = 'mb-2 block form-label font-600 text-content-primary dark:text-content-primary-dark';
 
 export default function ActivityForm({
   activity,
@@ -58,6 +58,7 @@ export default function ActivityForm({
         placeholder={t('forms.activityTitlePlaceholder')}
         maxLength={255}
         error={errors.title ? t(errors.title) : undefined}
+        autoFocus
       />
 
       <div className="rounded-none">
@@ -92,7 +93,10 @@ export default function ActivityForm({
         max={todayIso()}
       />
 
-      <div className="grid grid-cols-2 gap-3 rounded-none">
+      {/* items-end: "Hora de inicio" wraps to two lines at mobile widths while
+          "Hora de fin" does not, so aligning on the bottom keeps the two inputs
+          on the same line. */}
+      <div className="grid grid-cols-2 items-end gap-3 rounded-none">
         <TimePicker
           value={values.startTime}
           onChange={(value) => update('startTime', value)}
@@ -132,7 +136,7 @@ export default function ActivityForm({
           value={values.notes}
           placeholder={t('forms.addNotes')}
           onChange={(event) => update('notes', event.target.value)}
-          className="min-h-20 w-full resize-y border border-border-light bg-surface-primary px-3 py-2.5 text-base text-content-primary placeholder-content-tertiary rounded-none focus:border-2 focus:border-category-study dark:border-border-light-dark dark:bg-surface-primary-dark dark:text-content-primary-dark dark:placeholder-content-tertiary-dark dark:focus:border-category-study-dark"
+          className="min-h-20 w-full resize-y border border-border-light bg-surface-primary px-3 py-2.5 text-content-primary placeholder-content-tertiary rounded-none focus:border-2 focus:border-category-study dark:border-border-light-dark dark:bg-surface-primary-dark dark:text-content-primary-dark dark:placeholder-content-tertiary-dark dark:focus:border-category-study-dark"
         />
       </div>
 

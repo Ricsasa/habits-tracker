@@ -16,11 +16,12 @@
   },
   "navigation": {
     "add": "Add",
-    "dashboard": "Dashboard",
+    "dashboard": "Today",
     "reports": "Reports",
     "categories": "Categories",
     "settings": "Settings",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "menu": "Menu"
   },
   "buttons": {
     "add": "Add",
@@ -34,7 +35,7 @@
     "addTag": "Add Tag"
   },
   "forms": {
-    "activityTitle": "Activity Title",
+    "activityTitle": "Activity Title (optional)",
     "activityTitlePlaceholder": "What did you do?",
     "category": "Category",
     "selectCategory": "Select a category",
@@ -94,7 +95,7 @@
     "tagUpdated": "Tag updated",
     "tagDeleted": "Tag deleted",
     "categoryLimitReached": "Maximum of 7 categories reached",
-    "titleRequired": "Title is required and cannot exceed 255 characters",
+    "titleTooLong": "Title cannot exceed 255 characters",
     "invalidTimeRange": "End time must be after start time",
     "categoryRequired": "Select a category",
     "confirmDeleteActivity": "Delete this activity?",
@@ -107,6 +108,7 @@
     "filters": "Filters",
     "filterByCategory": "Categories",
     "filterByTag": "Tags",
+    "selectCategoryForTags": "Choose a category",
     "filterByRating": "Min. Rating",
     "dateRange": "Date Range",
     "from": "From",
@@ -160,6 +162,8 @@
     "editCategory": "Edit Category",
     "newTag": "New Tag",
     "editTag": "Edit Tag",
+    "deleteCategory": "Delete Category",
+    "deleteTag": "Delete Tag",
     "categoryCount": "{{count}} of 7 categories"
   },
   "auth": {

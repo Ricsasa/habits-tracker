@@ -42,7 +42,7 @@ export interface Activity {
   user_id: string;
   category_id: string;
   tag_id: string | null;
-  title: string;
+  title: string | null;
   start_time: string;
   end_time: string;
   duration_minutes: number;
@@ -63,7 +63,7 @@ export interface UserSettings {
 }
 
 export interface ActivityInput {
-  title: string;
+  title?: string | null;
   category_id: string;
   tag_id?: string | null;
   start_time: string;

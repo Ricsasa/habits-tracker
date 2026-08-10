@@ -1,5 +1,5 @@
 import { authenticateRequest } from '@/lib/supabase';
-import { deleteCategory, updateCategory } from '@/lib/db-queries';
+import { deleteCategory, updateCategory } from '@/lib/db-server';
 import { CategoryInput } from '@/lib/types';
 import { validateColor, validateName } from '@/lib/validation';
 import {

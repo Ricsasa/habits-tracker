@@ -16,11 +16,12 @@
   },
   "navigation": {
     "add": "Agregar",
-    "dashboard": "Inicio",
+    "dashboard": "Hoy",
     "reports": "Reportes",
     "categories": "Categorías",
     "settings": "Ajustes",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "menu": "Menú"
   },
   "buttons": {
     "add": "Agregar",
@@ -34,7 +35,7 @@
     "addTag": "Agregar etiqueta"
   },
   "forms": {
-    "activityTitle": "Título de la actividad",
+    "activityTitle": "Título de la actividad (opcional)",
     "activityTitlePlaceholder": "¿Qué hiciste?",
     "category": "Categoría",
     "selectCategory": "Selecciona una categoría",
@@ -94,7 +95,7 @@
     "tagUpdated": "Etiqueta actualizada",
     "tagDeleted": "Etiqueta eliminada",
     "categoryLimitReached": "Máximo de 7 categorías alcanzado",
-    "titleRequired": "El título es obligatorio y no puede exceder 255 caracteres",
+    "titleTooLong": "El título no puede exceder 255 caracteres",
     "invalidTimeRange": "La hora de fin debe ser posterior a la de inicio",
     "categoryRequired": "Selecciona una categoría",
     "confirmDeleteActivity": "¿Eliminar esta actividad?",
@@ -107,6 +108,7 @@
     "filters": "Filtros",
     "filterByCategory": "Categorías",
     "filterByTag": "Etiquetas",
+    "selectCategoryForTags": "Elige una categoría",
     "filterByRating": "Calificación mín.",
     "dateRange": "Rango de fechas",
     "from": "Desde",
@@ -160,6 +162,8 @@
     "editCategory": "Editar categoría",
     "newTag": "Nueva etiqueta",
     "editTag": "Editar etiqueta",
+    "deleteCategory": "Eliminar categoría",
+    "deleteTag": "Eliminar etiqueta",
     "categoryCount": "{{count}} de 7 categorías"
   },
   "auth": {

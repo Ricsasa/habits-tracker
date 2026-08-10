@@ -3,21 +3,50 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Rewritten per route by AppShell. Defaults match the first section. */
+    --band: #fff6b3;
+    --section-accent: #ffd84d;
+    --header-accent: var(--section-accent);
+
+    /* Ink on top of an accent fill: never white, the accents are light. */
+    --accent-ink: #111111;
+
+    --border-subtle: rgb(0 0 0 / 0.06);
+    --card-surface: rgb(255 255 255 / 0.5);
+    --card-shadow: rgb(0 0 0 / 0.04);
+  }
+
+  .dark {
+    /* Dark defaults for the first section, so there is no light-band flash
+       before AppShell's effect writes the real route colours. */
+    --band: #24220f;
+    --section-accent: #f2c94c;
+
+    --accent-ink: #14140e;
+    --border-subtle: rgb(255 255 255 / 0.1);
+    --card-surface: rgb(255 255 255 / 0.04);
+    --card-shadow: rgb(0 0 0 / 0.3);
+  }
+
   * {
     border-radius: 0;
   }
 
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    @apply bg-surface-primary text-content-primary text-base;
+    background-color: var(--band);
+    transition: background-color 400ms ease;
+    @apply text-content-primary text-base;
   }
 
   .dark body {
-    @apply bg-surface-primary-dark text-content-primary-dark;
+    @apply text-content-primary-dark;
   }
 
   input,
@@ -29,12 +58,115 @@
     border-radius: 0;
   }
 
+  /* iOS Safari zooms the viewport when a focused control is under 16px.
+     The type scale tops out at 14px for body text, so bump form controls
+     to 16px on touch devices. Pinch-to-zoom stays enabled. */
+  @media (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+
+  /* Mobile Safari sizes date/time controls to their native content and will
+     not shrink them below it, so they overflow narrow columns. Stripping the
+     native appearance lets the declared width win. */
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+  }
+
+  input[type='date']::-webkit-date-and-time-value,
+  input[type='time']::-webkit-date-and-time-value {
+    text-align: left;
+  }
+
   :focus-visible {
-    outline: 2px solid #2563eb;
-    outline-offset: 0;
+    outline: 2px solid #111111;
+    outline-offset: 2px;
   }
 
   .dark :focus-visible {
-    outline-color: #3b82f6;
+    outline-color: #f1efe8;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    body {
+      transition: none;
+    }
+  }
+}
+
+@layer components {
+  /* Keeps field labels the same size as the controls they sit above,
+     including the touch-device bump. Desktop inherits the 14px body size. */
+  @media (pointer: coarse) {
+    .form-label {
+      font-size: 16px;
+    }
+  }
+
+  /* One card definition shared by every section, so they cannot drift apart.
+     Translucent white means the card tints *with* the band instead of sitting
+     on top of it. The only rounded surface in the system. */
+  .card {
+    background-color: var(--card-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    transition: box-shadow 200ms ease;
+  }
+
+  .card:hover {
+    box-shadow: 0 2px 8px var(--card-shadow);
+  }
+
+  /* Shape and type only; the section supplies the fill with its 100 tint. */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 1px solid var(--border-subtle);
+  }
+
+  /* Highlighter hover: the signature chrome interaction. The accent floods the
+     padding box like a marker stroke. Colour only, 300ms, never transition-all. */
+  .highlight {
+    transition:
+      background-color 300ms ease,
+      color 300ms ease;
+  }
+
+  .highlight:hover {
+    background-color: var(--header-accent);
+    color: var(--accent-ink);
+  }
+
+  /* The one structural use of a 300: a single saturated line under a title. */
+  .band-rule {
+    border-bottom: 1px solid var(--section-accent);
+    padding-bottom: 1rem;
+  }
+
+  .hairline {
+    border-color: var(--border-subtle);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card,
+    .highlight {
+      transition: none;
+    }
   }
 }
