@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/atoms/Button';
+import LoadingIndicator from '@/components/atoms/LoadingIndicator';
 import LanguageToggle from '@/components/molecules/LanguageToggle';
 import ThemeToggle from '@/components/molecules/ThemeToggle';
 import { useLanguage } from '@/lib/i18n/useLanguage';
@@ -15,7 +16,7 @@ const LABEL = 'mb-3 text-base font-600 text-content-primary dark:text-content-pr
 export default function SettingsPage() {
   const { t } = useLanguage();
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ''));
@@ -50,9 +51,17 @@ export default function SettingsPage() {
           <p className="text-sm text-content-tertiary dark:text-content-tertiary-dark">
             {t('settings.signedInAs')}
           </p>
-          <p className="mb-3 text-base font-600 text-content-primary dark:text-content-primary-dark">
-            {email}
-          </p>
+          {/* The row keeps its height before the address arrives, so the sign
+              out button never shifts under the pointer. */}
+          <div className="mb-3 flex min-h-6 items-center">
+            {email === null ? (
+              <LoadingIndicator />
+            ) : (
+              <p className="text-base font-600 text-content-primary dark:text-content-primary-dark">
+                {email}
+              </p>
+            )}
+          </div>
           <Button variant="destructive" fullWidth onClick={handleSignOut}>
             {t('navigation.signOut')}
           </Button>

@@ -20,14 +20,18 @@ function toStats(report?: ReportPayload): ReportStats {
 export default function ReportsPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
-  const { data: categories = [] } = useCategories();
-  const { data: tags = [] } = useTags();
+  const { data: categories = [], isPending: categoriesPending } = useCategories();
+  const { data: tags = [], isPending: tagsPending } = useTags();
   const filters = useAppStore((state) => state.reportFilters);
   const setFilters = useAppStore((state) => state.setReportFilters);
   const { mutate: runReport, data: report, status } = useFilterReports();
   // 'idle' covers the render before the effect fires, so the zeroed stats never
   // flash before the first request starts.
   const isLoading = status === 'idle' || status === 'pending';
+  // The filter panel is the widest element on mobile, so chips arriving late
+  // reflow the whole page. Hold the panel behind a fixed-height loader until
+  // both lists resolve.
+  const filtersLoading = categoriesPending || tagsPending;
 
   useEffect(() => {
     runReport(filters, {
@@ -41,14 +45,20 @@ export default function ReportsPage() {
         {t('reports.title')}
       </h1>
       <div className="flex flex-col gap-6 rounded-none lg:grid lg:grid-cols-[300px_1fr] lg:items-start">
-        <ReportFilters
-          categories={categories}
-          tags={tags}
-          value={filters}
-          onChange={setFilters}
-        />
+        {filtersLoading ? (
+          <div className="flex min-h-[220px] items-center justify-center border border-border-light bg-surface-secondary p-4 rounded-none dark:border-border-light-dark dark:bg-surface-tertiary-dark">
+            <LoadingIndicator />
+          </div>
+        ) : (
+          <ReportFilters
+            categories={categories}
+            tags={tags}
+            value={filters}
+            onChange={setFilters}
+          />
+        )}
         {isLoading ? (
-          <div className="border border-border-light bg-surface-secondary p-10 text-center rounded-none dark:border-border-light-dark dark:bg-surface-tertiary-dark">
+          <div className="flex min-h-[360px] items-center justify-center border border-border-light bg-surface-secondary p-10 text-center rounded-none dark:border-border-light-dark dark:bg-surface-tertiary-dark">
             <LoadingIndicator />
           </div>
         ) : (
