@@ -30,6 +30,15 @@ export function formatLongDate(isoDate: string, language: Language): string {
   }).format(date);
 }
 
+export function formatLongDateNotIso(isoDate: string, language: Language): string {
+  const date = new Date(`${isoDate}`);
+  return new Intl.DateTimeFormat(localeFor(language), {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
+}
+
 export function formatShortDate(isoDate: string, language: Language): string {
   const date = new Date(`${isoDate}T00:00:00`);
   return new Intl.DateTimeFormat(localeFor(language), {

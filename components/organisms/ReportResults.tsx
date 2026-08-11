@@ -66,7 +66,7 @@ export default function ReportResults({ activities, stats }: ReportResultsProps)
   }
 
   return (
-    <section className="flex flex-col gap-6 rounded-none">
+    <section className="flex flex-col gap-6 rounded-none min-w-0">
       <div className="grid grid-cols-2 gap-3 rounded-none lg:grid-cols-3">
         <div className={STAT}>
           <p className={LABEL}>{t('reports.totalTime')}</p>

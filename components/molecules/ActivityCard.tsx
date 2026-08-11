@@ -2,7 +2,7 @@
 
 import { ActivityWithRelations } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { formatDuration, formatTimeRange } from '@/lib/locale-utils';
+import { formatDuration, formatLongDateNotIso, formatTimeRange } from '@/lib/locale-utils';
 import { translateCategoryName, translateTagName } from '@/lib/translations/categoryNames';
 import RatingStars from '@/components/atoms/RatingStars';
 import Badge from '@/components/atoms/Badge';
@@ -31,15 +31,20 @@ export default function ActivityCard({ activity, onEdit, onDelete }: ActivityCar
     if (window.confirm(t('messages.confirmDeleteActivity'))) onDelete(activity.id);
   }
 
+  console.log(activity.notes)
+
   return (
     <div className="flex gap-3 border border-border-light bg-surface-primary p-3 rounded-none dark:border-border-light-dark dark:bg-surface-secondary-dark">
       <div
         style={{ backgroundColor: activity.category?.color ?? '#d1d5db' }}
         className="w-1 flex-shrink-0 rounded-none"
       />
-      <div className="flex-1 rounded-none">
+      <div className="flex-1 rounded-none min-w-0">
         <p className="text-sm font-600 text-content-primary dark:text-content-primary-dark">
           {heading}
+        </p>
+        <p className="text-sm font-600 text-content-primary dark:text-content-primary-dark">
+          {formatLongDateNotIso(activity.start_time, language)}
         </p>
         <p className="text-xs text-content-secondary dark:text-content-secondary-dark">
           {formatTimeRange(activity.start_time, activity.end_time, language)} ·{' '}
@@ -52,7 +57,7 @@ export default function ActivityCard({ activity, onEdit, onDelete }: ActivityCar
           ) : null}
         </div>
         {activity.notes ? (
-          <p className="mt-1 truncate text-xs text-content-tertiary dark:text-content-tertiary-dark">
+          <p className="mt-1 text-xs text-content-tertiary dark:text-content-tertiary-dark min-w-0 whitespace-pre-line">
             {activity.notes}
           </p>
         ) : null}
